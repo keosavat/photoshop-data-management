@@ -1,0 +1,46 @@
+<script>
+/* dashboard.html — renders the Dashboard from getDashboard() (see docs-v2/06 dashboard). */
+const Dashboard = (function(){
+  function money(n){ return new Intl.NumberFormat('lo-LA').format(n) + ' ₭'; }
+  const KPI_DEFS = [
+    ['photos','ຮູບທັງໝົດ / Total Photos','🖼️','b-blue'],
+    ['albums','ອະລະບໍ້າ / Albums','📚','b-purple'],
+    ['customers','ລູກຄ້າ / Customers','👤','b-green'],
+    ['orders','ອໍເດີ້ / Orders','🧾','b-amber'],
+    ['revenue','ລາຍຮັບ / Revenue','💰','b-green',true],
+    ['todayUpload','ອັບໂຫຼດມື້ນີ້ / Today','⬆️','b-blue'],
+    ['pendingJobs','ວຽກຄ້າງ / Pending','⏳','b-amber'],
+    ['completedJobs','ວຽກສຳເລັດ / Completed','✅','b-green']
+  ];
+  function load(){
+    document.getElementById('cols').style.display = '';
+    const kEl = document.getElementById('kpis');
+    kEl.innerHTML = KPI_DEFS.map(()=>'<div class="glass kpi skeleton"><div class="val">···</div></div>').join('');
+    DAMS.call('getDashboard').then(function(r){
+      if(!r || !r.ok){
+        kEl.innerHTML = '<div class="glass card">⚠️ ' + ((r&&r.error&&r.error.code)||'Error') + '</div>';
+        document.getElementById('hSub').textContent = 'ບໍ່ສາມາດໂຫຼດ (ກວດການ login / SHEET_ID).';
+        return;
+      }
+      const k = r.data.kpis;
+      document.getElementById('hSub').textContent = 'ບົດບາດ / Role: ' + (r.data.role || '-');
+      document.getElementById('avatar').textContent = (r.data.role || '?').charAt(0);
+      kEl.innerHTML = KPI_DEFS.map(function(d){
+        const key=d[0],label=d[1],ic=d[2],badge=d[3],isMoney=d[4];
+        const val = isMoney ? money(k[key]||0) : new Intl.NumberFormat().format(k[key]||0);
+        return '<div class="glass kpi"><div class="top"><div class="ic '+badge+'">'+ic+'</div></div>'+
+          '<div class="label">'+label+'</div><div class="val">'+val+'</div></div>';
+      }).join('');
+      const act = (r.data.activity||[]);
+      document.getElementById('activity').innerHTML = act.length ? act.map(function(a){
+        return '<div class="tl"><div class="dot b-blue">•</div><div class="txt">'+
+          (a.message||a.action||JSON.stringify(a))+'</div></div>';
+      }).join('') : '<div class="tl"><div class="txt" style="color:var(--muted)">ຍັງບໍ່ມີກິດຈະກຳ</div></div>';
+    }).catch(function(err){
+      kEl.innerHTML = '<div class="glass card">⚠️ ' + err + '</div>';
+    });
+  }
+  return { load: load };
+})();
+Dashboard.load();
+</script>

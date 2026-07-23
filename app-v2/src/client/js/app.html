@@ -1,0 +1,30 @@
+<script>
+/* app.html — client bootstrap: api() wrapper (google.script.run), theme, nav router.
+   See docs-v2/05 §Conventions. */
+const DAMS = {
+  /** Call a server function; returns a Promise of the Result envelope. */
+  call(fn, ...args){
+    return new Promise((resolve, reject)=>{
+      google.script.run.withSuccessHandler(resolve).withFailureHandler(reject)[fn](...args);
+    });
+  }
+};
+
+document.getElementById('themeBtn').onclick = function(){
+  const h = document.documentElement, dark = h.getAttribute('data-theme') === 'dark';
+  h.setAttribute('data-theme', dark ? 'light' : 'dark');
+  this.textContent = dark ? '☀️' : '🌙';
+};
+
+document.getElementById('nav').addEventListener('click', function(e){
+  const a = e.target.closest('a'); if(!a || !a.dataset.k) return;
+  document.querySelectorAll('#nav a').forEach(x=>x.classList.remove('active'));
+  a.classList.add('active');
+  document.getElementById('hTitle').textContent = a.textContent.trim();
+  if(a.dataset.k === 'dashboard'){ Dashboard.load(); return; }
+  document.getElementById('hSub').textContent = 'ໂມດູນນີ້ຢູ່ໃນແຜນ phase ຕໍ່ໄປ (backend service ພ້ອມແລ້ວ).';
+  document.getElementById('kpis').innerHTML =
+    '<div class="glass card">🚧 ' + a.textContent.trim() + ' — UI ກຳລັງພັດທະນາ. Backend service ພ້ອມ (60/60 tests).</div>';
+  document.getElementById('cols').style.display = 'none';
+});
+</script>
