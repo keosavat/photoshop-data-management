@@ -1,0 +1,75 @@
+<script>
+/* customersView.html — Customers module UI (list + add) calling CustomerService. */
+const Customers = (function(){
+  function esc(s){ return String(s==null?'':s).replace(/[&<>]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;'}[c];}); }
+  const inp = 'flex:1;min-width:130px;padding:9px 11px;border-radius:8px;border:1px solid var(--line);background:var(--panel-solid);color:var(--text);font-family:var(--font)';
+
+  function load(el){
+    document.getElementById('hSub').textContent = 'ຈັດການລູກຄ້າ / Manage customers';
+    el.innerHTML =
+      '<div class="glass card">' +
+        '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">' +
+          '<h3 style="margin:0">ລູກຄ້າ / Customers</h3>' +
+          '<button class="qa" id="cAdd" style="width:auto;flex-direction:row;gap:6px;padding:9px 15px">➕ ເພີ່ມ / Add</button>' +
+        '</div>' +
+        '<div id="cForm" style="display:none"></div>' +
+        '<div id="cList" style="color:var(--muted)">ກຳລັງໂຫຼດ…</div>' +
+      '</div>';
+    document.getElementById('cAdd').onclick = toggleForm;
+    refresh();
+  }
+
+  function refresh(){
+    DAMS.call('apiCustomers').then(function(r){
+      const list = document.getElementById('cList');
+      if(!r || !r.ok){ list.innerHTML = '<div style="color:#ff6b6b">⚠️ '+((r&&r.error&&r.error.code)||'Error')+'</div>'; return; }
+      const rows = r.data || [];
+      if(!rows.length){ list.innerHTML = '<div style="padding:14px">ຍັງບໍ່ມີລູກຄ້າ / No customers yet</div>'; return; }
+      list.innerHTML =
+        '<table style="width:100%;border-collapse:collapse;font-size:.88rem">' +
+          '<thead><tr style="text-align:left;color:var(--muted)">' +
+            '<th style="padding:8px">ID</th><th>ຊື່ / Name</th><th>ໂທ / Phone</th><th>Email</th><th>ສ້າງ / Created</th>' +
+          '</tr></thead><tbody>' +
+          rows.map(function(c){ return '<tr style="border-top:1px solid var(--line)">' +
+            '<td style="padding:8px">'+esc(c.customer_id)+'</td>' +
+            '<td>'+esc(c.name)+'</td><td>'+esc(c.phone)+'</td><td>'+esc(c.email)+'</td>' +
+            '<td style="color:var(--muted)">'+esc(String(c.created_at).slice(0,10))+'</td></tr>'; }).join('') +
+          '</tbody></table>';
+    });
+  }
+
+  function toggleForm(){
+    const f = document.getElementById('cForm');
+    if(f.style.display === 'none'){
+      f.style.display = '';
+      f.innerHTML =
+        '<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;padding:14px;background:var(--bg2);border-radius:12px">' +
+          '<input id="fName" placeholder="ຊື່ / Name *" style="'+inp+'">' +
+          '<input id="fPhone" placeholder="ໂທ / Phone" style="'+inp+'">' +
+          '<input id="fEmail" placeholder="Email" style="'+inp+'">' +
+          '<button class="qa" id="fSave" style="width:auto;flex-direction:row;padding:9px 16px">💾 ບັນທຶກ / Save</button>' +
+          '<span id="fMsg" style="align-self:center;font-size:.8rem"></span>' +
+        '</div>';
+      document.getElementById('fSave').onclick = save;
+    } else { f.style.display = 'none'; }
+  }
+
+  function save(){
+    const name = document.getElementById('fName').value.trim();
+    const phone = document.getElementById('fPhone').value.trim();
+    const email = document.getElementById('fEmail').value.trim();
+    const msg = document.getElementById('fMsg');
+    msg.style.color = 'var(--muted)'; msg.textContent = '…';
+    DAMS.call('apiCreateCustomer', { name:name, phone:phone, email:email }).then(function(r){
+      if(!r || !r.ok){ msg.style.color = '#ff6b6b'; msg.textContent = '⚠️ '+((r&&r.error&&r.error.code)||'Error'); return; }
+      msg.style.color = 'var(--accent2)'; msg.textContent = '✅ '+r.data.customer_id;
+      document.getElementById('fName').value = '';
+      document.getElementById('fPhone').value = '';
+      document.getElementById('fEmail').value = '';
+      refresh();
+    });
+  }
+
+  return { load: load };
+})();
+</script>

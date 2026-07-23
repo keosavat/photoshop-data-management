@@ -1,8 +1,6 @@
 <script>
-/* app.html — client bootstrap: api() wrapper (google.script.run), theme, nav router.
-   See docs-v2/05 §Conventions. */
+/* app.html — client bootstrap: api() wrapper (google.script.run), theme, view router. */
 const DAMS = {
-  /** Call a server function; returns a Promise of the Result envelope. */
   call(fn, ...args){
     return new Promise((resolve, reject)=>{
       google.script.run.withSuccessHandler(resolve).withFailureHandler(reject)[fn](...args);
@@ -16,6 +14,19 @@ document.getElementById('themeBtn').onclick = function(){
   this.textContent = dark ? '☀️' : '🌙';
 };
 
+/* Show a module view; dashboard uses its own sections, others render into #view. */
+function showView(k){
+  const dash = document.getElementById('dashView');
+  const view = document.getElementById('view');
+  if(k === 'dashboard'){ dash.style.display=''; view.style.display='none'; Dashboard.load(); return; }
+  dash.style.display='none'; view.style.display='';
+  if(k === 'customers'){ Customers.load(view); return; }
+  if(k === 'photos'){ Photos.load(view); return; }
+  document.getElementById('hSub').textContent = 'ໂມດູນນີ້ຢູ່ໃນແຜນ phase ຕໍ່ໄປ / coming soon.';
+  view.innerHTML = '<div class="glass card">🚧 ' + k +
+    ' — UI ກຳລັງພັດທະນາ. Backend service ພ້ອມ + tested ແລ້ວ.</div>';
+}
+
 document.getElementById('nav').addEventListener('click', function(e){
   const a = e.target.closest('a'); if(!a || !a.dataset.k) return;
   document.querySelectorAll('#nav a').forEach(x=>x.classList.remove('active'));
@@ -23,10 +34,6 @@ document.getElementById('nav').addEventListener('click', function(e){
   const en = (a.querySelector('.lbl b')||{}).textContent || a.textContent.trim();
   const lo = (a.querySelector('.lbl small')||{}).textContent || '';
   document.getElementById('hTitle').textContent = en + (lo ? ' / ' + lo : '');
-  if(a.dataset.k === 'dashboard'){ Dashboard.load(); return; }
-  document.getElementById('hSub').textContent = 'ໂມດູນນີ້ຢູ່ໃນແຜນ phase ຕໍ່ໄປ (backend service ພ້ອມແລ້ວ).';
-  document.getElementById('kpis').innerHTML =
-    '<div class="glass card">🚧 ' + a.textContent.trim() + ' — UI ກຳລັງພັດທະນາ. Backend service ພ້ອມ (60/60 tests).</div>';
-  document.getElementById('cols').style.display = 'none';
+  showView(a.dataset.k);
 });
 </script>

@@ -1,0 +1,32 @@
+<script>
+/* photosView.html — Photos module UI (list gallery) calling PhotoService.list. */
+const Photos = (function(){
+  function esc(s){ return String(s==null?'':s).replace(/[&<>]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;'}[c];}); }
+
+  function load(el){
+    document.getElementById('hSub').textContent = 'ຄັງຮູບພາບ / Photo library';
+    el.innerHTML =
+      '<div class="glass card">' +
+        '<h3 style="margin-bottom:14px">ຮູບພາບ / Photos</h3>' +
+        '<div id="pList" style="color:var(--muted)">ກຳລັງໂຫຼດ…</div>' +
+      '</div>';
+    DAMS.call('apiPhotos').then(function(r){
+      const list = document.getElementById('pList');
+      if(!r || !r.ok){ list.innerHTML = '<div style="color:#ff6b6b">⚠️ '+((r&&r.error&&r.error.code)||'Error')+'</div>'; return; }
+      const rows = (r.data || []).filter(function(p){ return p.status !== 'deleted'; });
+      if(!rows.length){
+        list.innerHTML = '<div style="padding:14px">ຍັງບໍ່ມີຮູບ / No photos yet.<br>' +
+          '<span style="font-size:.8rem">ການ upload ຕ້ອງໃຊ້ file picker — ຈະເພີ່ມໃນ phase ຕໍ່ໄປ.</span></div>';
+        return;
+      }
+      list.innerHTML = '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px">' +
+        rows.map(function(p){ return '<div style="background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:12px">' +
+          '<div style="font-size:28px;text-align:center">🖼️</div>' +
+          '<div style="font-size:.85rem;margin-top:6px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(p.name)+'</div>' +
+          '<div style="font-size:.72rem;color:var(--muted)">'+esc(p.album_id||'—')+' · '+esc(p.status)+'</div></div>'; }).join('') +
+        '</div>';
+    });
+  }
+  return { load: load };
+})();
+</script>
