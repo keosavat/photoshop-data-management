@@ -3,7 +3,7 @@
  * doGet serves the HtmlService app; client calls server via google.script.run.
  */
 function doGet() {
-  return HtmlService.createTemplateFromFile('src/client/index')
+  return HtmlService.createTemplateFromFile('client/index')
     .evaluate()
     .setTitle('PhotoShop Enterprise DAMS')
     .addMetaTag('viewport', 'width=device-width, initial-scale=1')
