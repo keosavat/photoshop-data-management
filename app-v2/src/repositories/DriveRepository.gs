@@ -14,9 +14,17 @@ class DriveRepository {
     return parent.createFolder(name);
   }
 
-  /** The DAMS root folder (created once under My Drive). */
+  /**
+   * The DAMS root folder. If Script Property ROOT_FOLDER_ID is set (shared folder),
+   * use it so ALL users write to the same place. Otherwise create under My Drive.
+   */
   root() {
-    if (!this._root) this._root = this._childFolder(DriveApp.getRootFolder(), this._rootName);
+    if (!this._root) {
+      const id = getProp_('ROOT_FOLDER_ID');
+      this._root = id
+        ? DriveApp.getFolderById(id)
+        : this._childFolder(DriveApp.getRootFolder(), this._rootName);
+    }
     return this._root;
   }
 
