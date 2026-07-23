@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <?!= include('src/client/css/style'); ?>
+</head>
+<body>
+  <div class="app">
+    <?!= include('src/client/components/topbar'); ?>
+    <?!= include('src/client/components/sidebar'); ?>
+    <main class="content" id="main">
+      <p id="welcomeMsg"></p>
+
+      <section id="dashboardView">
+        <h2 data-i18n="nav.dashboard"></h2>
+        <div id="dashboard"></div>
+      </section>
+
+      <section id="ordersView" hidden>
+        <h2 data-i18n="nav.orders"></h2>
+        <div class="card">
+          <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center">
+            <input class="input" id="ordCust" placeholder="CUS-000001">
+            <select class="input" id="ordType">
+              <option value="print">ພິມທົ່ວໄປ</option><option value="event">ງານ/ພິທີ</option>
+              <option value="id">ຮູບ ID</option><option value="restoration">ອັດ/ແກ້ຮູບ</option>
+            </select>
+            <select class="input" id="ordPriority"><option value="Normal">ປົກກະຕິ</option><option value="Urgent">ດ່ວນ</option></select>
+            <button class="btn btn-primary" onclick="createOrderFromForm()">ສ້າງອໍເດີ</button>
+          </div>
+        </div>
+        <div class="card"><h3 data-i18n="nav.orders"></h3><div id="orderList"></div></div>
+      </section>
+
+      <section id="photosView" hidden>
+        <h2 data-i18n="nav.photos"></h2>
+        <div class="card">
+          <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:12px">
+            <input class="input" id="custCode" placeholder="CUS-000001">
+            <select class="input" id="catSel">
+              <option value="general">general</option><option value="event">event</option>
+              <option value="id">id</option><option value="restoration">restoration</option>
+            </select>
+          </div>
+          <div class="upload-zone" id="uploadZone"><span data-i18n="btn.upload"></span> — ຄລິກ ຫຼືລາກໄຟລ໌ຮູບມາວາງ</div>
+          <input type="file" id="fileInput" accept="image/*" multiple hidden>
+          <div class="progress"><div class="progress-bar" id="progBar"></div></div>
+          <div id="uploadLog"></div>
+        </div>
+        <div class="card">
+          <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:12px">
+            <input class="input" id="photoQuery" placeholder="ຄົ້ນຫາ (ລະຫັດ / ລູກຄ້າ / ຊື່)…">
+            <select class="input" id="photoFilterCat">
+              <option value="">— ໝວດທັງໝົດ —</option>
+              <option value="general">general</option><option value="event">event</option>
+              <option value="id">id</option><option value="restoration">restoration</option>
+            </select>
+            <select class="input" id="photoFilterStatus">
+              <option value="">— ສະຖານະທັງໝົດ —</option>
+              <option value="Ready">Ready</option><option value="Archived">Archived</option>
+            </select>
+            <button class="btn btn-ghost" onclick="searchPhotos_()" data-i18n="btn.search"></button>
+            <button class="btn btn-ghost" onclick="resetPhotoSearch()">ລ້າງ</button>
+          </div>
+          <div class="gallery" id="gallery"></div>
+        </div>
+      </section>
+
+      <section id="documentsView" hidden>
+        <h2 data-i18n="nav.documents"></h2>
+        <div class="card">
+          <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:12px">
+            <input class="input" id="docTitle" placeholder="ຫົວຂໍ້ເອກະສານ">
+            <select class="input" id="docCat"></select>
+            <input class="input" id="docCust" placeholder="CUS-000001">
+            <input type="file" id="docFile" accept=".pdf,.jpg,.jpeg,.png,.docx,.xlsx">
+            <button class="btn btn-primary" onclick="handleDocUpload()" data-i18n="btn.upload"></button>
+          </div>
+        </div>
+        <div class="card">
+          <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:12px">
+            <input class="input" id="docQuery" placeholder="ຄົ້ນຫາ…">
+            <select class="input" id="filterCat"></select>
+            <button class="btn btn-ghost" onclick="searchDocs()" data-i18n="btn.search"></button>
+          </div>
+          <div id="docList"></div>
+        </div>
+      </section>
+
+      <section id="searchView" hidden>
+        <h2 data-i18n="nav.search"></h2>
+        <div class="card">
+          <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-bottom:12px">
+            <input class="input" id="sQuery" placeholder="ຄົ້ນຫາຮູບ + ເອກະສານ…" style="flex:1;min-width:220px">
+            <button class="btn btn-primary" onclick="runSearch()" data-i18n="btn.search"></button>
+            <span class="time" id="sMeta"></span>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px">
+            <select class="input" id="sfType"><option value="">ທຸກປະເພດ</option><option value="photo">ຮູບ</option><option value="document">ເອກະສານ</option></select>
+            <input class="input" id="sfCust" placeholder="ລູກຄ້າ">
+            <input class="input" id="sfOrder" placeholder="ອໍເດີ">
+            <input class="input" id="sfCat" placeholder="ໝວດ">
+            <input class="input" id="sfStatus" placeholder="ສະຖານະ">
+            <input class="input" id="sfFileType" placeholder="ຊະນິດໄຟລ໌">
+            <input class="input" id="sfFrom" placeholder="ຈາກວັນທີ" type="date">
+            <input class="input" id="sfTo" placeholder="ຫາວັນທີ" type="date">
+            <button class="btn btn-ghost" onclick="saveCurrentFilter()">ບັນທຶກ Filter</button>
+          </div>
+          <div style="font-size:13px;margin-bottom:8px"><span class="time">ຄົ້ນຫາລ່າສຸດ:</span> <span id="sRecent"></span></div>
+          <div style="font-size:13px;margin-bottom:12px"><span class="time">Filter ທີ່ບັນທຶກ:</span> <span id="sSaved"></span></div>
+          <div id="sResults"></div>
+        </div>
+      </section>
+
+      <section id="reportsView" hidden>
+        <h2 data-i18n="nav.reports"></h2>
+        <div class="card">
+          <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center">
+            <label class="time">ແນວໂນ້ມ:</label>
+            <select class="input" id="trendPeriod" onchange="loadTrend()"><option value="daily">ລາຍວັນ</option><option value="monthly" selected>ລາຍເດືອນ</option><option value="yearly">ລາຍປີ</option></select>
+            <span style="flex:1"></span>
+            <label class="time">ສົ່ງອອກ:</label>
+            <button class="btn btn-ghost" onclick="doExport('kpi','csv')">KPI CSV</button>
+            <button class="btn btn-ghost" onclick="doExport('trend','xlsx')">Trend XLSX</button>
+            <button class="btn btn-ghost" onclick="doExport('storage','pdf')">Storage PDF</button>
+          </div>
+        </div>
+        <div id="reportBody"></div>
+      </section>
+
+      <section id="settingsView" hidden>
+        <h2 data-i18n="nav.settings"></h2>
+        <div id="settingsBody"></div>
+      </section>
+    </main>
+  </div>
+
+  <?!= include('src/client/components/modal'); ?>
+  <?!= include('src/client/js/i18n'); ?>
+  <?!= include('src/client/js/dashboard'); ?>
+  <?!= include('src/client/js/orders'); ?>
+  <?!= include('src/client/js/photos'); ?>
+  <?!= include('src/client/js/documents'); ?>
+  <?!= include('src/client/js/search'); ?>
+  <?!= include('src/client/js/reports'); ?>
+  <?!= include('src/client/js/settings'); ?>
+  <script>
+    // ---------- Session bootstrap: login() → token + csrf (STEP 5/9) ----------
+    window.__token = null; window.__csrf = null;
+    function bootstrapSession() {
+      google.script.run
+        .withSuccessHandler(function (s) {
+          window.__token = s.token; window.__csrf = s.csrf;
+          var el = document.getElementById('welcomeMsg');
+          if (el && typeof t === 'function') el.textContent = t('welcome', { name: (s.user && s.user.name) || 'User' });
+        })
+        .withFailureHandler(function () {})
+        .login();
+    }
+
+    // ---------- Logout: ລ້າງ session + ສະແດງໜ້າຢືນຢັນ ----------
+    function doLogout() {
+      try { google.script.run.logout(window.__token); } catch (e) {}
+      window.__token = null; window.__csrf = null;
+      document.body.innerHTML =
+        '<div style="min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:sans-serif;gap:16px;background:#f5f7fa">' +
+          '<div style="font-size:48px">👋</div>' +
+          '<h2 style="margin:0;color:#1F4E79">ອອກຈາກລະບົບແລ້ວ</h2>' +
+          '<p style="color:#666;margin:0">ຂອບໃຈ. ກົດປຸ່ມລຸ່ມນີ້ເພື່ອເຂົ້າສູ່ລະບົບໃໝ່.</p>' +
+          '<button onclick="location.reload()" style="background:#1F4E79;color:#fff;border:none;border-radius:8px;padding:12px 28px;font-size:15px;cursor:pointer">ເຂົ້າສູ່ລະບົບໃໝ່</button>' +
+          '<a href="https://accounts.google.com/Logout" target="_blank" style="color:#888;font-size:13px">ອອກຈາກ Google ທັງໝົດ (ທຸກບັນຊີ)</a>' +
+        '</div>';
+    }
+
+    // ---------- tiny hash router: dashboard | photos ----------
+    function route() {
+      var h = (location.hash || '#dashboard').replace('#', '');
+      var views = { dashboard: 'dashboardView', orders: 'ordersView', photos: 'photosView', documents: 'documentsView', search: 'searchView', reports: 'reportsView', settings: 'settingsView' };
+      Object.keys(views).forEach(function (k) {
+        var el = document.getElementById(views[k]); if (el) el.hidden = (k !== h);
+      });
+      if (!views[h]) document.getElementById('dashboardView').hidden = false;  // fallback
+      document.querySelectorAll('.sidebar a').forEach(function (a) {
+        a.classList.toggle('active', a.getAttribute('data-nav') === h);
+      });
+      if (h === 'orders' && typeof initOrders === 'function') initOrders();
+      if (h === 'photos' && typeof initPhotos === 'function') initPhotos();
+      if (h === 'documents' && typeof initDocuments === 'function') initDocuments();
+      if (h === 'search' && typeof initSearch === 'function') initSearch();
+      if (h === 'reports' && typeof initReports === 'function') initReports();
+      if (h === 'settings' && typeof initSettings === 'function') initSettings();
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+      bootstrapSession();
+      window.addEventListener('hashchange', route);
+      // sidebar nav: ຫ້າມ <a href="#..."> navigate _top (base target=_top) — ໃຊ້ hash ພາຍໃນ
+      document.querySelectorAll('.sidebar a').forEach(function (a) {
+        a.addEventListener('click', function (e) {
+          e.preventDefault();
+          location.hash = a.getAttribute('data-nav') || 'dashboard';
+        });
+      });
+      setTimeout(route, 300);
+    });
+  </script>
+</body>
+</html>
