@@ -20,7 +20,9 @@ document.getElementById('nav').addEventListener('click', function(e){
   const a = e.target.closest('a'); if(!a || !a.dataset.k) return;
   document.querySelectorAll('#nav a').forEach(x=>x.classList.remove('active'));
   a.classList.add('active');
-  document.getElementById('hTitle').textContent = a.textContent.trim();
+  const en = (a.querySelector('.lbl b')||{}).textContent || a.textContent.trim();
+  const lo = (a.querySelector('.lbl small')||{}).textContent || '';
+  document.getElementById('hTitle').textContent = en + (lo ? ' / ' + lo : '');
   if(a.dataset.k === 'dashboard'){ Dashboard.load(); return; }
   document.getElementById('hSub').textContent = 'ໂມດູນນີ້ຢູ່ໃນແຜນ phase ຕໍ່ໄປ (backend service ພ້ອມແລ້ວ).';
   document.getElementById('kpis').innerHTML =
