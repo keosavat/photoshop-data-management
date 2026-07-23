@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="lo">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Photo Shop — Data &amp; Photo Management</title>
+<style>
+  :root{
+    --bg:#0f1729; --card:#1b263b; --card2:#22304a; --line:#2d3e5c;
+    --text:#e8eef7; --muted:#9fb2cd; --accent:#4da3ff; --accent2:#7bd88f;
+    --pdf:#ff6b6b; --doc:#4da3ff; --xls:#7bd88f;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:"Noto Sans Lao","Segoe UI",system-ui,sans-serif;background:var(--bg);
+    color:var(--text);line-height:1.6;padding:0 16px 60px}
+  .wrap{max-width:960px;margin:0 auto}
+  header{padding:48px 0 28px;text-align:center;border-bottom:1px solid var(--line);margin-bottom:32px}
+  header h1{font-size:1.9rem;font-weight:700}
+  header p{color:var(--muted);margin-top:10px;font-size:1.02rem}
+  .badges{margin-top:18px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+  .badge{background:var(--card2);border:1px solid var(--line);color:var(--muted);
+    padding:4px 12px;border-radius:20px;font-size:.8rem}
+  section{margin-bottom:34px}
+  h2{font-size:1.15rem;margin-bottom:14px;display:flex;align-items:center;gap:10px}
+  h2 .ic{width:26px;height:26px;display:inline-flex;align-items:center;justify-content:center;
+    background:var(--card2);border-radius:8px;font-size:.95rem}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px}
+  a.file{display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--line);
+    border-radius:10px;padding:12px 14px;text-decoration:none;color:var(--text);transition:.15s}
+  a.file:hover{background:var(--card2);border-color:var(--accent);transform:translateY(-1px)}
+  .tag{font-size:.62rem;font-weight:700;padding:2px 7px;border-radius:5px;letter-spacing:.5px;flex:none}
+  .t-pdf{background:rgba(255,107,107,.15);color:var(--pdf)}
+  .t-doc{background:rgba(77,163,255,.15);color:var(--doc)}
+  .t-xls{background:rgba(123,216,143,.15);color:var(--xls)}
+  .fname{font-size:.9rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .appcard{background:linear-gradient(135deg,var(--card2),var(--card));border:1px solid var(--accent);
+    border-radius:14px;padding:22px}
+  .appcard h3{font-size:1.05rem;margin-bottom:6px}
+  .appcard p{color:var(--muted);font-size:.92rem}
+  .appcard a{color:var(--accent);text-decoration:none;font-weight:600}
+  footer{text-align:center;color:var(--muted);font-size:.82rem;border-top:1px solid var(--line);
+    padding-top:22px;margin-top:20px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>📸 Photo Shop — Data &amp; Photo Management</h1>
+    <p>ລະບົບຄຸ້ມຄອງຂໍ້ມູນ ແລະ ຮູບພາບ ສຳລັບຮ້ານຖ່າຍຮູບ · Google Apps Script + Sheets + Drive</p>
+    <div class="badges">
+      <span class="badge">v1.0</span>
+      <span class="badge">15 / 15 STEP complete</span>
+      <span class="badge">ພາສາ: ລາວ · ໄທ · ອັງກິດ</span>
+    </div>
+  </header>
+
+  <section>
+    <h2><span class="ic">🧩</span> ໂປຣແກຣມ / Application</h2>
+    <div class="appcard">
+      <h3>photoshop-app</h3>
+      <p>Google Apps Script source — server services (.gs), UI client (HTML/CSS/JS), i18n, migrations, tests.</p>
+      <p style="margin-top:10px"><a href="photoshop-app/README.md">→ ເບິ່ງ README ຂອງໂປຣແກຣມ</a> &nbsp;·&nbsp; <a href="photoshop-app/">ເປີດໂຟເດີ src</a></p>
+    </div>
+  </section>
+
+  <section>
+    <h2><span class="ic">📏</span> Master Rules</h2>
+    <div class="grid">
+      <a class="file" href="docs/rules/Master_Development_Rules_v4.1.docx"><span class="tag t-doc">DOCX</span><span class="fname">Master Development Rules v4.1</span></a>
+    </div>
+  </section>
+
+  <section>
+    <h2><span class="ic">🪜</span> STEP 1–15 (Development Phases)</h2>
+    <div class="grid">
+      <a class="file" href="docs/steps/STEP1_Project_Planning_v1.1.docx"><span class="tag t-doc">DOCX</span><span class="fname">STEP 1 · Project Planning</span></a>
+      <a class="file" href="docs/steps/STEP2_Architecture_v1.0.docx"><span class="tag t-doc">DOCX</span><span class="fname">STEP 2 · Architecture</span></a>
+      <a class="file" href="docs/steps/STEP3_Database_v1.1.docx"><span class="tag t-doc">DOCX</span><span class="fname">STEP 3 · Database</span></a>
+      <a class="file" href="docs/steps/STEP4_GoogleDrive_v1.0.docx"><span class="tag t-doc">DOCX</span><span class="fname">STEP 4 · Google Drive</span></a>
+      <a class="file" href="docs/steps/STEP5_Authentication_v1.1.docx"><span class="tag t-doc">DOCX</span><span class="fname">STEP 5 · Authentication</span></a>
+      <a class="file" href="docs/steps/STEP6_MultiLanguage_v1.0.docx"><span class="tag t-doc">DOCX</span><span class="fname">STEP 6 · Multi-language</span></a>
+      <a class="file" href="docs/steps/STEP7_DesignSystem_v1.0.docx"><span class="tag t-doc">DOCX</span><span class="fname">STEP 7 · Design System</span></a>
+      <a class="file" href="docs/steps/STEP8_Dashboard_v1.0.docx"><span class="tag t-doc">DOCX</span><span class="fname">STEP 8 · Dashboard</span></a>
+      <a class="file" href="docs/steps/STEP9_PhotoArchive_v1.0.docx"><span class="tag t-doc">DOCX</span><span class="fname">STEP 9 · Photo Archive</span></a>
+      <a class="file" href="docs/steps/STEP10_DocumentManagement_v1.0.docx"><span class="tag t-doc">DOCX</span><span class="fname">STEP 10 · Document Mgmt</span></a>
+      <a class="file" href="docs/steps/STEP11_SearchEngine_v1.0.docx"><span class="tag t-doc">DOCX</span><span class="fname">STEP 11 · Search Engine</span></a>
+      <a class="file" href="docs/steps/STEP12_Reports_v1.0.docx"><span class="tag t-doc">DOCX</span><span class="fname">STEP 12 · Reports</span></a>
+      <a class="file" href="docs/steps/STEP13_Settings_v1.0.docx"><span class="tag t-doc">DOCX</span><span class="fname">STEP 13 · Settings</span></a>
+      <a class="file" href="docs/steps/STEP14_Optimization_v1.0.docx"><span class="tag t-doc">DOCX</span><span class="fname">STEP 14 · Optimization</span></a>
+      <a class="file" href="docs/steps/STEP15_TestingDeployment_v1.0.docx"><span class="tag t-doc">DOCX</span><span class="fname">STEP 15 · Testing &amp; Deploy</span></a>
+    </div>
+  </section>
+
+  <section>
+    <h2><span class="ic">📚</span> Books</h2>
+    <div class="grid">
+      <a class="file" href="docs/books/Book2_Development_Phases_v1.0.docx"><span class="tag t-doc">DOCX</span><span class="fname">Book 2 · Development Phases</span></a>
+      <a class="file" href="docs/books/Book3_Claude_Prompt_Collection_v1.0.docx"><span class="tag t-doc">DOCX</span><span class="fname">Book 3 · Prompt Collection</span></a>
+      <a class="file" href="docs/books/Book4_Technical_Documentation_v1.0.docx"><span class="tag t-doc">DOCX</span><span class="fname">Book 4 · Technical Docs</span></a>
+    </div>
+  </section>
+
+  <section>
+    <h2><span class="ic">📘</span> Guides &amp; Reference</h2>
+    <div class="grid">
+      <a class="file" href="docs/guides/Installation_Guide_v1.0.pdf"><span class="tag t-pdf">PDF</span><span class="fname">Installation Guide</span></a>
+      <a class="file" href="docs/guides/API_Documentation_v1.0.pdf"><span class="tag t-pdf">PDF</span><span class="fname">API Documentation</span></a>
+      <a class="file" href="docs/guides/User_Manual_v1.0_LA.pdf"><span class="tag t-pdf">PDF</span><span class="fname">User Manual (ລາວ)</span></a>
+      <a class="file" href="docs/guides/Release_Signoff_v1.0.pdf"><span class="tag t-pdf">PDF</span><span class="fname">Release Signoff</span></a>
+      <a class="file" href="docs/guides/UAT_Checklist_v1.0.xlsx"><span class="tag t-xls">XLSX</span><span class="fname">UAT Checklist</span></a>
+    </div>
+  </section>
+
+  <footer>
+    ຈັດລະບຽບ ແລະ ອັບໂຫຼດໂດຍ Claude · Private repository ·
+    ເອກະສານເວີຊັນເກົ່າຢູ່ໃນ <code>docs/archive/</code>
+  </footer>
+</div>
+</body>
+</html>

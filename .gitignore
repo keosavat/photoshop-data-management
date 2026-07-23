@@ -1,0 +1,17 @@
+# OS / editor junk
+.DS_Store
+Thumbs.db
+*.log
+
+# LibreOffice / Office temp & lock files
+*.tmp
+.~lock.*#
+~$*
+
+# Node
+node_modules/
+
+# Secrets
+credentials.json
+*.env
+.clasp.json.local
