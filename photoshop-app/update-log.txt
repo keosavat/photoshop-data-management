@@ -1,0 +1,39 @@
+======================================== 
+  UPDATE START ຈັນ 13/07/2026 10:31:49,78 
+======================================== 
+Pushed 34 files at 10:31:55.
+└─ appsscript.json
+└─ design-preview.html
+└─ migrations\Migration.gs
+└─ src\Auth.gs
+└─ src\client\components\card.html
+└─ src\client\components\modal.html
+└─ src\client\components\sidebar.html
+└─ src\client\components\topbar.html
+└─ src\client\css\style.html
+└─ src\client\index.html
+└─ src\client\js\app.html
+└─ src\client\js\dashboard.html
+└─ src\client\js\documents.html
+└─ src\client\js\i18n.html
+└─ src\client\js\orders.html
+└─ src\client\js\photos.html
+└─ src\client\js\reports.html
+└─ src\client\js\search.html
+└─ src\client\js\settings.html
+└─ src\Code.gs
+└─ src\Config.gs
+└─ src\DashboardService.gs
+└─ src\Database.gs
+└─ src\DocumentService.gs
+└─ src\DriveService.gs
+└─ src\LanguageService.gs
+└─ src\MetricsService.gs
+└─ src\OrderService.gs
+└─ src\PhotoService.gs
+└─ src\ReportService.gs
+└─ src\SearchService.gs
+└─ src\SettingsService.gs
+└─ src\Utils.gs
+└─ tests\Tests.gs
+Deployed AKfycbwsWj49gmjKr5i43KwvBi1UUKwQglQIqkY51mfGkE-K_Ornzi6yaO5tX6VJAkxyFghZcw @15
