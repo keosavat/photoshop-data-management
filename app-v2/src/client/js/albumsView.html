@@ -1,0 +1,54 @@
+<script>
+/* albumsView.html — Albums module UI (list + create). */
+const Albums = (function(){
+  function esc(s){ return String(s==null?'':s).replace(/[&<>]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;'}[c];}); }
+  var inp = 'flex:1;min-width:130px;padding:9px 11px;border-radius:8px;border:1px solid var(--line);background:var(--panel-solid);color:var(--text);font-family:var(--font)';
+
+  function load(el){
+    document.getElementById('hSub').textContent = 'ຈັດການອະລະບໍ້າ / Manage albums';
+    el.innerHTML =
+      '<div class="glass card">' +
+        '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">' +
+          '<h3 style="margin:0">ອະລະບໍ້າ / Albums</h3>' +
+          '<button class="qa" id="aAdd" style="width:auto;flex-direction:row;gap:6px;padding:9px 15px">➕ ເພີ່ມ / Add</button>' +
+        '</div><div id="aForm" style="display:none"></div>' +
+        '<div id="aList" style="color:var(--muted)">ກຳລັງໂຫຼດ…</div></div>';
+    document.getElementById('aAdd').onclick = toggleForm;
+    refresh();
+  }
+  function refresh(){
+    DAMS.call('apiAlbums').then(function(r){
+      var list = document.getElementById('aList');
+      if(!r || !r.ok){ list.innerHTML='<div style="color:#ff6b6b">⚠️ '+((r&&r.error&&r.error.code)||'Error')+'</div>'; return; }
+      var rows = r.data || [];
+      if(!rows.length){ list.innerHTML='<div style="padding:14px">ຍັງບໍ່ມີອະລະບໍ້າ / No albums yet</div>'; return; }
+      list.innerHTML='<table style="width:100%;border-collapse:collapse;font-size:.88rem"><thead><tr style="text-align:left;color:var(--muted)">'+
+        '<th style="padding:8px">ID</th><th>ຊື່ / Name</th><th>ລູກຄ້າ / Customer</th><th>ສະຖານະ / Status</th></tr></thead><tbody>'+
+        rows.map(function(a){ return '<tr style="border-top:1px solid var(--line)"><td style="padding:8px">'+esc(a.album_id)+'</td>'+
+          '<td>'+esc(a.name)+'</td><td>'+esc(a.customer_id)+'</td><td>'+esc(a.status)+'</td></tr>'; }).join('')+'</tbody></table>';
+    });
+  }
+  function toggleForm(){
+    var f=document.getElementById('aForm');
+    if(f.style.display==='none'){ f.style.display='';
+      f.innerHTML='<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;padding:14px;background:var(--bg2);border-radius:12px">'+
+        '<input id="aName" placeholder="ຊື່ / Name *" style="'+inp+'">'+
+        '<input id="aCust" placeholder="Customer ID (CUS-...)" style="'+inp+'">'+
+        '<button class="qa" id="aSave" style="width:auto;flex-direction:row;padding:9px 16px">💾 Save</button>'+
+        '<span id="aMsg" style="align-self:center;font-size:.8rem"></span></div>';
+      document.getElementById('aSave').onclick=save;
+    } else { f.style.display='none'; }
+  }
+  function save(){
+    var name=document.getElementById('aName').value.trim();
+    var cust=document.getElementById('aCust').value.trim();
+    var msg=document.getElementById('aMsg'); msg.style.color='var(--muted)'; msg.textContent='…';
+    DAMS.call('apiCreateAlbum',{name:name,customer_id:cust}).then(function(r){
+      if(!r||!r.ok){ msg.style.color='#ff6b6b'; msg.textContent='⚠️ '+((r&&r.error&&r.error.code)||'Error'); return; }
+      msg.style.color='var(--accent2)'; msg.textContent='✅ '+r.data.album_id;
+      document.getElementById('aName').value=''; document.getElementById('aCust').value=''; refresh();
+    });
+  }
+  return { load: load };
+})();
+</script>

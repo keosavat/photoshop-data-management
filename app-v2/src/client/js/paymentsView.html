@@ -1,0 +1,60 @@
+<script>
+/* paymentsView.html — Payments module UI (record + view by order). Manager+ only. */
+const Payments = (function(){
+  function esc(s){ return String(s==null?'':s).replace(/[&<>]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;'}[c];}); }
+  var inp = 'flex:1;min-width:120px;padding:9px 11px;border-radius:8px;border:1px solid var(--line);background:var(--panel-solid);color:var(--text);font-family:var(--font)';
+  function money(n){ return new Intl.NumberFormat('lo-LA').format(Number(n||0))+' ₭'; }
+
+  function load(el){
+    document.getElementById('hSub').textContent = 'ຊຳລະເງິນ / Payments (Manager+)';
+    el.innerHTML =
+      '<div class="glass card">' +
+        '<h3 style="margin-bottom:12px">ບັນທຶກການຊຳລະ / Record payment</h3>' +
+        '<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:8px">' +
+          '<input id="yOrder" placeholder="Order ID (ORD-...) *" style="'+inp+'">' +
+          '<input id="yAmt" type="number" placeholder="ຈຳນວນ / Amount *" style="'+inp+'">' +
+          '<select id="yMethod" style="'+inp+'"><option value="cash">cash / ເງິນສົດ</option><option value="transfer">transfer / ໂອນ</option><option value="qr">qr</option></select>' +
+          '<button class="qa" id="ySave" style="width:auto;flex-direction:row;padding:9px 16px">💾 Save</button>' +
+          '<span id="yMsg" style="align-self:center;font-size:.8rem"></span>' +
+        '</div>' +
+        '<hr style="border:none;border-top:1px solid var(--line);margin:14px 0">' +
+        '<h3 style="margin-bottom:12px">ເບິ່ງຕາມອໍເດີ້ / View by order</h3>' +
+        '<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px">' +
+          '<input id="qOrder" placeholder="Order ID (ORD-...)" style="'+inp+'">' +
+          '<input id="qTotal" type="number" placeholder="ຍອດອໍເດີ້ / Order total" style="'+inp+'">' +
+          '<button class="qa" id="qLoad" style="width:auto;flex-direction:row;padding:9px 16px">🔎 Load</button>' +
+        '</div><div id="yList" style="color:var(--muted)"></div>' +
+      '</div>';
+    document.getElementById('ySave').onclick = save;
+    document.getElementById('qLoad').onclick = loadByOrder;
+  }
+  function save(){
+    var msg=document.getElementById('yMsg'); msg.style.color='var(--muted)'; msg.textContent='…';
+    DAMS.call('apiRecordPayment',{ order_id:document.getElementById('yOrder').value.trim(),
+      amount:Number(document.getElementById('yAmt').value||0), method:document.getElementById('yMethod').value }).then(function(r){
+      if(!r||!r.ok){ msg.style.color='#ff6b6b'; msg.textContent='⚠️ '+((r&&r.error&&r.error.code)||'Error'); return; }
+      msg.style.color='var(--accent2)'; msg.textContent='✅ '+r.data.payment_id;
+      document.getElementById('yAmt').value='';
+    });
+  }
+  function loadByOrder(){
+    var id=document.getElementById('qOrder').value.trim();
+    var total=Number(document.getElementById('qTotal').value||0);
+    var list=document.getElementById('yList'); list.textContent='…';
+    DAMS.call('apiPayments', id).then(function(r){
+      if(!r||!r.ok){ list.innerHTML='<div style="color:#ff6b6b">⚠️ '+((r&&r.error&&r.error.code)||'Error')+'</div>'; return; }
+      var rows=r.data||[];
+      DAMS.call('apiOrderPaymentStatus', id, total).then(function(s){
+        var badge = (s&&s.ok) ? '<span class="chip">'+esc(s.data.status)+' · '+money(s.data.paid)+' / '+money(s.data.total)+'</span>' : '';
+        var tbl = rows.length ? '<table style="width:100%;border-collapse:collapse;font-size:.86rem"><thead><tr style="text-align:left;color:var(--muted)">'+
+          '<th style="padding:8px">ID</th><th>ຈຳນວນ</th><th>ວິທີ</th><th>ວັນ</th></tr></thead><tbody>'+
+          rows.map(function(p){ return '<tr style="border-top:1px solid var(--line)"><td style="padding:8px">'+esc(p.payment_id)+'</td>'+
+            '<td>'+money(p.amount)+'</td><td>'+esc(p.method)+'</td><td style="color:var(--muted)">'+esc(String(p.created_at).slice(0,10))+'</td></tr>'; }).join('')+'</tbody></table>'
+          : '<div style="padding:10px">ບໍ່ມີການຊຳລະ / no payments</div>';
+        list.innerHTML = '<div style="margin-bottom:10px">'+badge+'</div>'+tbl;
+      });
+    });
+  }
+  return { load: load };
+})();
+</script>

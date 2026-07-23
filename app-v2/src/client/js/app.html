@@ -22,6 +22,9 @@ function showView(k){
   dash.style.display='none'; view.style.display='';
   if(k === 'customers'){ Customers.load(view); return; }
   if(k === 'photos'){ Photos.load(view); return; }
+  if(k === 'albums'){ Albums.load(view); return; }
+  if(k === 'orders'){ Orders.load(view); return; }
+  if(k === 'payments'){ Payments.load(view); return; }
   document.getElementById('hSub').textContent = 'ໂມດູນນີ້ຢູ່ໃນແຜນ phase ຕໍ່ໄປ / coming soon.';
   view.innerHTML = '<div class="glass card">🚧 ' + k +
     ' — UI ກຳລັງພັດທະນາ. Backend service ພ້ອມ + tested ແລ້ວ.</div>';
