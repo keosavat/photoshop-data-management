@@ -54,6 +54,9 @@ body{font-family:var(--font);color:var(--text);
 .nav a{display:flex;align-items:center;gap:12px;padding:11px 13px;border-radius:12px;
   color:var(--muted);text-decoration:none;font-size:.9rem;transition:.15s;cursor:pointer}
 .nav a .i{width:20px;text-align:center}
+.nav a .lbl{display:flex;flex-direction:column;line-height:1.12}
+.nav a .lbl small{font-size:.66rem;opacity:.65}
+.nav a.active .lbl small{opacity:.92}
 .nav a:hover{background:var(--panel);color:var(--text)}
 .nav a.active{background:var(--grad);color:#fff;box-shadow:var(--shadow-sm)}
 .nav .sep{height:1px;background:var(--line);margin:8px 6px}
@@ -125,18 +128,18 @@ body{font-family:var(--font);color:var(--text);
       <div><b>PhotoShop</b><br><small>Enterprise DAMS v2.0</small></div>
     </div>
     <nav class="nav" id="nav">
-      <a class="active" data-k="dashboard"><span class="i">📊</span> Dashboard</a>
-      <a data-k="photos"><span class="i">🖼️</span> Photos</a>
-      <a data-k="albums"><span class="i">📚</span> Albums</a>
-      <a data-k="customers"><span class="i">👤</span> Customers</a>
-      <a data-k="documents"><span class="i">📄</span> Documents</a>
-      <a data-k="orders"><span class="i">🧾</span> Orders</a>
-      <a data-k="printing"><span class="i">🖨️</span> Printing</a>
-      <a data-k="payments"><span class="i">💵</span> Payments</a>
+      <a class="active" data-k="dashboard"><span class="i">📊</span><span class="lbl"><b>Dashboard</b><small>ພາບລວມ</small></span></a>
+      <a data-k="photos"><span class="i">🖼️</span><span class="lbl"><b>Photos</b><small>ຮູບພາບ</small></span></a>
+      <a data-k="albums"><span class="i">📚</span><span class="lbl"><b>Albums</b><small>ອະລະບໍ້າ</small></span></a>
+      <a data-k="customers"><span class="i">👤</span><span class="lbl"><b>Customers</b><small>ລູກຄ້າ</small></span></a>
+      <a data-k="documents"><span class="i">📄</span><span class="lbl"><b>Documents</b><small>ເອກະສານ</small></span></a>
+      <a data-k="orders"><span class="i">🧾</span><span class="lbl"><b>Orders</b><small>ອໍເດີ້</small></span></a>
+      <a data-k="printing"><span class="i">🖨️</span><span class="lbl"><b>Printing</b><small>ການພິມ</small></span></a>
+      <a data-k="payments"><span class="i">💵</span><span class="lbl"><b>Payments</b><small>ຊຳລະ</small></span></a>
       <div class="sep"></div>
-      <a data-k="search"><span class="i">🔍</span> Search</a>
-      <a data-k="reports"><span class="i">📈</span> Reports</a>
-      <a data-k="settings"><span class="i">⚙️</span> Settings</a>
+      <a data-k="search"><span class="i">🔍</span><span class="lbl"><b>Search</b><small>ຄົ້ນຫາ</small></span></a>
+      <a data-k="reports"><span class="i">📈</span><span class="lbl"><b>Reports</b><small>ລາຍງານ</small></span></a>
+      <a data-k="settings"><span class="i">⚙️</span><span class="lbl"><b>Settings</b><small>ຕັ້ງຄ່າ</small></span></a>
     </nav>
     <div class="spacer" style="flex:1"></div>
     <a class="nav" style="color:var(--muted);padding:11px 13px;text-decoration:none;font-size:.85rem">↩︎ Logout</a>
@@ -257,7 +260,9 @@ document.getElementById('nav').addEventListener('click', e=>{
   const a=e.target.closest('a'); if(!a||!a.dataset.k) return;
   document.querySelectorAll('#nav a').forEach(x=>x.classList.remove('active'));
   a.classList.add('active');
-  document.getElementById('hTitle').textContent = a.textContent.trim();
+  const en=(a.querySelector('.lbl b')||{}).textContent||a.textContent.trim();
+  const lo=(a.querySelector('.lbl small')||{}).textContent||'';
+  document.getElementById('hTitle').textContent = en + (lo ? ' / ' + lo : '');
   if(a.dataset.k!=='dashboard'){
     document.getElementById('hSub').textContent='ໂມດູນນີ້ຢູ່ໃນແຜນ Phase ຕໍ່ໄປ (backend services ພ້ອມ + tested ແລ້ວ).';
     document.getElementById('kpis').innerHTML='<div class="glass card">🚧 '+a.textContent.trim()+' — UI ກຳລັງພັດທະນາ. Backend service ພ້ອມແລ້ວ (60/60 tests).</div>';
