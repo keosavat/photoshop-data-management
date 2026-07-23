@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="lo" data-theme="dark">
+<head>
+  <base target="_top">
+  <meta charset="UTF-8">
+  <?!= include('src/client/css/style'); ?>
+</head>
+<body>
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="logo">📸</div>
+      <div><b>PhotoShop</b><br><small>Enterprise DAMS v2.0</small></div>
+    </div>
+    <nav class="nav" id="nav">
+      <a class="active" data-k="dashboard"><span class="i">📊</span> Dashboard</a>
+      <a data-k="photos"><span class="i">🖼️</span> Photos</a>
+      <a data-k="albums"><span class="i">📚</span> Albums</a>
+      <a data-k="customers"><span class="i">👤</span> Customers</a>
+      <a data-k="documents"><span class="i">📄</span> Documents</a>
+      <a data-k="orders"><span class="i">🧾</span> Orders</a>
+      <a data-k="printing"><span class="i">🖨️</span> Printing</a>
+      <a data-k="payments"><span class="i">💵</span> Payments</a>
+      <div class="sep"></div>
+      <a data-k="search"><span class="i">🔍</span> Search</a>
+      <a data-k="reports"><span class="i">📈</span> Reports</a>
+      <a data-k="settings"><span class="i">⚙️</span> Settings</a>
+    </nav>
+    <div style="flex:1"></div>
+    <a style="color:var(--muted);padding:11px 13px;text-decoration:none;font-size:.85rem" href="#">↩︎ Logout</a>
+  </aside>
+
+  <div class="main">
+    <header class="topbar">
+      <div class="search">🔎 <input id="q" placeholder="ຄົ້ນຫາ photos, customers, orders…"></div>
+      <div class="spacer"></div>
+      <button class="iconbtn" id="themeBtn" title="Theme">🌙</button>
+      <button class="iconbtn" title="Notifications">🔔</button>
+      <div class="avatar" id="avatar" title="User">?</div>
+    </header>
+    <main class="content">
+      <div class="page-head">
+        <h1 id="hTitle">ພາບລວມ / Dashboard</h1>
+        <p id="hSub">ກຳລັງໂຫຼດ…</p>
+      </div>
+      <section class="kpis" id="kpis"></section>
+      <section class="cols" id="cols">
+        <div class="glass card">
+          <h3>ກິດຈະກຳຫຼ້າສຸດ / Recent activity</h3>
+          <div class="timeline" id="activity"></div>
+        </div>
+        <div class="glass card">
+          <h3>ຄຳສັ່ງດ່ວນ / Quick actions</h3>
+          <div class="quick">
+            <div class="qa"><span class="ic">⬆️</span><b>Upload Photo</b><span class="chip">Staff+</span></div>
+            <div class="qa"><span class="ic">📚</span><b>New Album</b><span class="chip">Staff+</span></div>
+            <div class="qa"><span class="ic">🧾</span><b>New Order</b><span class="chip">Staff+</span></div>
+            <div class="qa"><span class="ic">💵</span><b>Record Payment</b><span class="chip">Manager+</span></div>
+          </div>
+        </div>
+      </section>
+      <div class="foot">PhotoShop Enterprise DAMS · Phase 1 UI</div>
+    </main>
+  </div>
+
+  <?!= include('src/client/js/app'); ?>
+  <?!= include('src/client/js/dashboard'); ?>
+</body>
+</html>
