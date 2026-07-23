@@ -28,7 +28,8 @@ const SRC_ORDER = [
   'src/services/PrintingService.gs',
   'src/services/SearchService.gs',
   'src/services/ReportService.gs',
-  'src/services/SettingService.gs'
+  'src/services/SettingService.gs',
+  'src/Code.gs'
 ];
 
 function loadSrc(root) {
