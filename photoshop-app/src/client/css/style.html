@@ -1,0 +1,201 @@
+<!-- client/css/style.html — Design System (STEP 7). Single source of truth ສຳລັບ UI.
+     ອ້າງອີງ Book 1: §5 (UI Standards), §15 (Responsive), §40 (UX), §14 (font ຮອງຮັບລາວ). -->
+<style>
+/* ========================= Design Tokens ========================= */
+:root {
+  /* Brand / semantic colors */
+  --color-primary:     #1F4E79;
+  --color-primary-600: #163A5A;
+  --color-accent:      #2E75B6;
+  --color-bg:          #FFFFFF;
+  --color-surface:     #F7F9FC;
+  --color-border:      #D9E1EC;
+  --color-text:        #1A2530;
+  --color-muted:       #5B6B7B;
+  --color-success:     #2E7D32;
+  --color-warning:     #ED6C02;
+  --color-danger:      #C62828;
+  --color-info:        #0277BD;
+
+  /* Typography (font ຮອງຮັບ ລາວ/ໄທ/ອັງກິດ — §14) */
+  --font-sans: 'Noto Sans Lao', 'Leelawadee UI', 'Segoe UI', system-ui, sans-serif;
+  --font-mono: 'Consolas', 'Courier New', monospace;
+  --fs-xs: 12px; --fs-sm: 13px; --fs-base: 15px; --fs-lg: 18px; --fs-xl: 22px; --fs-2xl: 28px;
+  --lh-base: 1.6;
+
+  /* Spacing scale (4px base) */
+  --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px; --space-6: 24px; --space-8: 32px;
+
+  /* Radius / shadow / z-index */
+  --radius-sm: 4px; --radius-md: 8px; --radius-lg: 12px; --radius-pill: 999px;
+  --shadow-sm: 0 1px 2px rgba(16,36,58,.08);
+  --shadow-md: 0 4px 12px rgba(16,36,58,.12);
+  --shadow-lg: 0 10px 30px rgba(16,36,58,.18);
+  --z-dropdown: 1000; --z-sticky: 1020; --z-modal: 1050; --z-toast: 1080;
+
+  /* Layout */
+  --sidebar-w: 240px; --topbar-h: 56px;
+}
+
+/* Theme scaffold — Light/Dark (STEP 7 ກະກຽມໄວ້, ເປີດໃຊ້ໃນອະນາຄົດ) */
+[data-theme="dark"] {
+  --color-bg:      #0F1720;
+  --color-surface: #16212E;
+  --color-border:  #263443;
+  --color-text:    #E6EDF3;
+  --color-muted:   #93A4B5;
+}
+
+/* ========================= Base / reset ========================= */
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  font-family: var(--font-sans);
+  font-size: var(--fs-base);
+  line-height: var(--lh-base);
+  color: var(--color-text);
+  background: var(--color-surface);
+}
+a { color: var(--color-accent); text-decoration: none; }
+code, pre { font-family: var(--font-mono); }
+
+/* Accessibility: focus + screen-reader only (§40) */
+:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); border: 0; }
+
+/* ========================= Layout (App shell) ========================= */
+.app { display: grid; grid-template-columns: var(--sidebar-w) 1fr; grid-template-rows: var(--topbar-h) 1fr; min-height: 100vh; }
+.topbar { grid-column: 1 / -1; display: flex; align-items: center; gap: var(--space-4);
+  height: var(--topbar-h); padding: 0 var(--space-4); background: var(--color-primary); color: #fff; position: sticky; top: 0; z-index: var(--z-sticky); }
+.sidebar { background: var(--color-bg); border-right: 1px solid var(--color-border); padding: var(--space-4); }
+.content { padding: var(--space-6); overflow: auto; }
+.sidebar a { display: block; padding: var(--space-2) var(--space-3); border-radius: var(--radius-md); color: var(--color-text); }
+.sidebar a:hover, .sidebar a.active { background: var(--color-surface); color: var(--color-primary); }
+
+/* ========================= Components ========================= */
+/* Button */
+.btn { display: inline-flex; align-items: center; gap: var(--space-2); font: inherit; cursor: pointer;
+  padding: var(--space-2) var(--space-4); border-radius: var(--radius-md); border: 1px solid transparent; }
+.btn-primary { background: var(--color-primary); color: #fff; }
+.btn-primary:hover { background: var(--color-primary-600); }
+.btn-ghost { background: transparent; border-color: var(--color-border); color: var(--color-text); }
+.btn-danger { background: var(--color-danger); color: #fff; }
+.btn:disabled { opacity: .5; cursor: not-allowed; }
+
+/* Card */
+.card { background: var(--color-bg); border: 1px solid var(--color-border); border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm); padding: var(--space-6); }
+.card + .card { margin-top: var(--space-4); }
+
+/* Input / form */
+.field { display: flex; flex-direction: column; gap: var(--space-1); margin-bottom: var(--space-4); }
+.field label { font-size: var(--fs-sm); color: var(--color-muted); }
+.input, select, textarea { font: inherit; padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-bg); color: var(--color-text); }
+.input:focus { border-color: var(--color-accent); }
+
+/* Table */
+.table { width: 100%; border-collapse: collapse; }
+.table th { background: var(--color-primary); color: #fff; text-align: left; padding: var(--space-2) var(--space-3); }
+.table td { padding: var(--space-2) var(--space-3); border-bottom: 1px solid var(--color-border); }
+.table tr:hover td { background: var(--color-surface); }
+
+/* Badge (ໃຊ້ກັບ order status §55) */
+.badge { display: inline-block; padding: 2px var(--space-2); border-radius: var(--radius-pill); font-size: var(--fs-xs); color: #fff; }
+.badge-new { background: var(--color-muted); }
+.badge-printing { background: var(--color-warning); }
+.badge-completed { background: var(--color-success); }
+.badge-info { background: var(--color-info); }
+
+/* Alert */
+.alert { padding: var(--space-3) var(--space-4); border-radius: var(--radius-md); border-left: 4px solid; margin-bottom: var(--space-4); }
+.alert-success { border-color: var(--color-success); background: #E8F5E9; }
+.alert-warning { border-color: var(--color-warning); background: #FFF3E0; }
+.alert-danger  { border-color: var(--color-danger);  background: #FFEBEE; }
+
+/* Tabs */
+.tabs { display: flex; gap: var(--space-2); border-bottom: 1px solid var(--color-border); margin-bottom: var(--space-4); }
+.tabs button { background: none; border: none; padding: var(--space-2) var(--space-4); cursor: pointer; color: var(--color-muted); border-bottom: 2px solid transparent; }
+.tabs button.active { color: var(--color-primary); border-color: var(--color-primary); }
+
+/* Modal (z-index token; ESC/focus trap ໃນ JS — §40) */
+.modal-backdrop { position: fixed; inset: 0; background: rgba(16,36,58,.5); display: flex; align-items: center; justify-content: center; z-index: var(--z-modal); }
+.modal-backdrop[hidden] { display: none; }  /* ໃຫ້ hidden ເຊື່ອງໄດ້ຈິງ (override display:flex) */
+.modal { background: var(--color-bg); border-radius: var(--radius-lg); box-shadow: var(--shadow-lg); padding: var(--space-6); max-width: 560px; width: 92%; }
+
+/* Icon standard: inline svg, ຂະໜາດເປັນມາດຕະຖານ */
+.icon { width: 20px; height: 20px; vertical-align: middle; }
+.icon-sm { width: 16px; height: 16px; } .icon-lg { width: 24px; height: 24px; }
+
+/* ========================= Responsive (§15) ========================= */
+/* Desktop: default (>1024). Tablet: ≤1024. Mobile: ≤640. */
+@media (max-width: 1024px) {
+  :root { --sidebar-w: 200px; }
+}
+@media (max-width: 640px) {
+  .app { grid-template-columns: 1fr; grid-template-rows: var(--topbar-h) auto 1fr; }
+  .sidebar { border-right: none; border-bottom: 1px solid var(--color-border); }
+  .content { padding: var(--space-4); }
+}
+
+/* ========================= STEP 8: Dashboard + states ========================= */
+/* Animation tokens */
+:root { --duration-fast: 120ms; --duration-normal: 240ms; --easing-standard: cubic-bezier(.2,0,0,1); }
+
+/* KPI cards */
+.kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: var(--space-4); margin-bottom: var(--space-6); }
+.kpi { background: var(--color-bg); border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: var(--space-4); }
+.kpi .label { font-size: var(--fs-sm); color: var(--color-muted); }
+.kpi .value { font-size: var(--fs-2xl); font-weight: 600; color: var(--color-primary); }
+
+/* Quick actions */
+.qa-grid { display: flex; flex-wrap: wrap; gap: var(--space-3); margin-bottom: var(--space-6); }
+
+/* Recent activity timeline */
+.timeline { list-style: none; margin: 0; padding: 0; }
+.timeline li { padding: var(--space-2) 0; border-bottom: 1px solid var(--color-border); font-size: var(--fs-sm); }
+.timeline .time { color: var(--color-muted); }
+
+/* Skeleton loader */
+.skeleton { background: var(--color-border); border-radius: var(--radius-md); animation: pulse var(--duration-normal) ease-in-out infinite alternate; }
+.skeleton-line { height: 14px; margin: 8px 0; }
+@keyframes pulse { from { opacity: .35; } to { opacity: .75; } }
+
+/* Empty / error states */
+.empty-state { text-align: center; color: var(--color-muted); padding: var(--space-8); }
+.error-state { text-align: center; color: var(--color-danger); padding: var(--space-6); }
+
+/* Toast notification */
+.toast-wrap { position: fixed; top: 16px; right: 16px; z-index: var(--z-toast); display: flex; flex-direction: column; gap: var(--space-2); }
+.toast { background: var(--color-text); color: #fff; padding: var(--space-3) var(--space-4); border-radius: var(--radius-md); box-shadow: var(--shadow-md); animation: slidein var(--duration-normal) var(--easing-standard); }
+.toast-success { background: var(--color-success); }
+.toast-danger  { background: var(--color-danger); }
+@keyframes slidein { from { transform: translateX(20px); opacity: 0; } to { transform: none; opacity: 1; } }
+
+/* ========================= STEP 9: Photo Archive ========================= */
+.upload-zone { border: 2px dashed var(--color-border); border-radius: var(--radius-lg); padding: var(--space-8);
+  text-align: center; color: var(--color-muted); cursor: pointer; transition: border-color var(--duration-fast) var(--easing-standard); }
+.upload-zone:hover, .upload-zone.drag { border-color: var(--color-accent); color: var(--color-accent); }
+
+.progress { height: 8px; background: var(--color-border); border-radius: var(--radius-pill); overflow: hidden; margin: var(--space-2) 0; }
+.progress-bar { height: 100%; width: 0; background: var(--color-primary); transition: width var(--duration-fast) linear; }
+
+.gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: var(--space-3); }
+.thumb { width: 100%; aspect-ratio: 1 / 1; object-fit: cover; border-radius: var(--radius-md); border: 1px solid var(--color-border); background: var(--color-surface); }
+.thumb-item { position: relative; }
+.thumb-item .cap { font-size: var(--fs-xs); color: var(--color-muted); margin-top: 2px; }
+/* ປຸ່ມ action ນ້ອຍ (ເບິ່ງ/ໂຫລດ/ປຣີ້ນ/ແຊ) — ໃຊ້ໃນ documents ແລະ gallery */
+.row-actions { display: flex; gap: 4px; flex-wrap: wrap; }
+.btn-sm { padding: 4px 8px; font-size: var(--fs-xs); line-height: 1.2; }
+.thumb-item .row-actions { margin-top: 6px; justify-content: center; }
+
+.upload-row { display: flex; align-items: center; gap: var(--space-3); padding: var(--space-2) 0; font-size: var(--fs-sm); border-bottom: 1px solid var(--color-border); }
+.upload-row .ok { color: var(--color-success); } .upload-row .fail { color: var(--color-danger); } .upload-row .dup { color: var(--color-warning); }
+
+/* ========================= STEP 12: Reports (CSS bar charts) ========================= */
+.bar-row { display: grid; grid-template-columns: 120px 1fr 48px; align-items: center; gap: var(--space-3); margin: var(--space-1) 0; font-size: var(--fs-sm); }
+.bar-track { background: var(--color-border); border-radius: var(--radius-pill); height: 14px; overflow: hidden; }
+.bar-fill { height: 100%; background: var(--color-primary); border-radius: var(--radius-pill); }
+.bar-fill.up { background: var(--color-accent); } .bar-fill.ord { background: var(--color-success); }
+.storage-warn { color: var(--color-danger); font-weight: 600; }
+</style>
