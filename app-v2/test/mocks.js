@@ -64,8 +64,10 @@ function makeGas() {
 
   // ---------- Drive ----------
   let folderSeq = 1, fileSeq = 1;
+  const folderRegistry = {};
   function FolderMock(name) {
     const f = { name, id: 'fld' + (folderSeq++), folders: [], files: [] };
+    folderRegistry[f.id] = f;
     f.getName = () => f.name;
     f.getId = () => f.id;
     f.getFoldersByName = (n) => {
@@ -86,7 +88,13 @@ function makeGas() {
     return f;
   }
   const rootFolder = FolderMock('My Drive');
-  const DriveApp = { getRootFolder: () => rootFolder };
+  const DriveApp = {
+    getRootFolder: () => rootFolder,
+    getFolderById: (id) => {
+      if (!folderRegistry[id]) throw new Error('No folder with id: ' + id);
+      return folderRegistry[id];
+    }
+  };
 
   // ---------- Cache ----------
   const CacheService = {
@@ -115,6 +123,22 @@ function makeGas() {
         : Buffer.from(String(input), 'utf8');
       const digest = crypto.createHash('sha256').update(buf).digest();
       return Array.from(digest).map((b) => (b > 127 ? b - 256 : b));
+    },
+    base64Encode: (bytes) => {
+      const buf = Array.isArray(bytes) ? Buffer.from(bytes.map((b) => (b < 0 ? b + 256 : b))) : Buffer.from(String(bytes), 'utf8');
+      return buf.toString('base64');
+    },
+    base64Decode: (str) => {
+      const buf = Buffer.from(String(str), 'base64');
+      return Array.from(buf).map((b) => (b > 127 ? b - 256 : b));
+    },
+    newBlob: (bytes, contentType, name) => {
+      const arr = Array.isArray(bytes) ? bytes.slice() : Array.from(Buffer.from(String(bytes), 'utf8'));
+      return {
+        _name: name || 'blob', _type: contentType || 'application/octet-stream', _bytes: arr,
+        getName() { return this._name; }, setName(n) { this._name = n; return this; },
+        getContentType() { return this._type; }, getBytes() { return this._bytes.slice(); }
+      };
     }
   };
   const Logger = { log: (x) => { store.logs.push(String(x)); } };
