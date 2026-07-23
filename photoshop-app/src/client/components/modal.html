@@ -1,0 +1,50 @@
+<!-- components/modal.html — reusable modal (STEP 7). ESC/focus trap ໃນ JS (§40). -->
+<div class="modal-backdrop" id="appModal" role="dialog" aria-modal="true" hidden>
+  <div class="modal">
+    <h3 id="appModalTitle"></h3>
+    <div id="appModalBody"></div>
+    <div style="margin-top:16px;text-align:right">
+      <button class="btn btn-ghost" data-i18n="btn.cancel" onclick="closeModal()"></button>
+      <button class="btn btn-primary" id="appModalOk" data-i18n="btn.save"></button>
+    </div>
+  </div>
+</div>
+<script>
+  function openModal(title){ var m=document.getElementById('appModal'); document.getElementById('appModalTitle').textContent=title||''; m.hidden=false; m.querySelector('.btn-primary').focus(); }
+  function closeModal(){ document.getElementById('appModal').hidden=true; }
+  document.addEventListener('keydown', function(e){ if(e.key==='Escape') closeModal(); });
+
+  /* ---------- Share modal (QR + Download/Copy/Print) — ໃຊ້ຮ່ວມ documents & photos ---------- */
+  function showShareModal(label, url){
+    var qr = 'https://api.qrserver.com/v1/create-qr-code/?size=260x260&margin=8&data=' + encodeURIComponent(url);
+    window.__share = { label: label, url: url, qr: qr };
+    openModal('📱 QR — ' + label);
+    document.getElementById('appModalBody').innerHTML =
+      '<div style="text-align:center">' +
+        '<img src="' + qr + '" alt="QR" style="width:250px;height:250px;border:1px solid var(--color-border);border-radius:10px">' +
+        '<div style="font-weight:700;margin-top:10px">' + label + '</div>' +
+        '<div class="time" style="word-break:break-all;margin:6px 0 14px">' + url + '</div>' +
+        '<div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap">' +
+          '<button class="btn" style="background:#16a34a;color:#fff;border:none" onclick="shareDownloadQR()">⬇ ດາວໂຫລດ</button>' +
+          '<button class="btn btn-primary" onclick="shareCopyLink()">🔗 ກ໋ອບປີ້ລິ້ງ</button>' +
+          '<button class="btn" style="background:#7c3aed;color:#fff;border:none" onclick="sharePrintQR()">🖨 ປຣີ້ນ</button>' +
+        '</div>' +
+      '</div>';
+  }
+  function shareDownloadQR(){ window.open(window.__share.qr, '_blank'); }
+  function shareCopyLink(){
+    var url = window.__share.url;
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(url).then(function(){ if(typeof showToast==='function') showToast('notify.saved','success'); else alert('ກ໋ອບປີ້ລິ້ງແລ້ວ'); }, function(){ window.prompt('ກ໋ອບປີ້ລິ້ງ:', url); });
+    } else { window.prompt('ກ໋ອບປີ້ລິ້ງ:', url); }
+  }
+  function sharePrintQR(){
+    var s = window.__share; var w = window.open('', '_blank', 'width=420,height=580'); if(!w) return;
+    w.document.write('<html><head><meta charset="utf-8"><title>' + s.label + '</title></head>' +
+      '<body style="text-align:center;font-family:sans-serif;padding:24px">' +
+      '<img src="' + s.qr + '" style="width:300px;height:300px"><h2 style="margin:12px 0 4px">' + s.label + '</h2>' +
+      '<div style="font-size:12px;word-break:break-all;color:#555">' + s.url + '</div>' +
+      '<scr'+'ipt>window.onload=function(){setTimeout(function(){window.print();},400);}</scr'+'ipt></body></html>');
+    w.document.close();
+  }
+</script>
