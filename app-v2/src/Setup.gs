@@ -47,6 +47,27 @@ function setupDatabase() {
   });
 }
 
+/**
+ * Create the shared DAMS root folder (under the owner's Drive) and store its ID
+ * in Script Property ROOT_FOLDER_ID so every user uploads to the same place.
+ * Owner runs this once, then SHARES that folder with staff (Editor).
+ */
+function setupDriveRoot() {
+  return guardResult(function () {
+    const props = PropertiesService.getScriptProperties();
+    // temporarily clear so root() creates a fresh folder under My Drive
+    const existing = props.getProperty('ROOT_FOLDER_ID');
+    let folder;
+    if (existing) {
+      folder = DriveApp.getFolderById(existing);
+    } else {
+      folder = new DriveRepository().root(); // creates PhotoShop-DAMS under My Drive
+      props.setProperty('ROOT_FOLDER_ID', folder.getId());
+    }
+    return ok({ rootFolderId: folder.getId(), name: folder.getName() });
+  });
+}
+
 /** Verify all required tabs exist. Returns { ok, missing }. */
 function validateSchema() {
   return guardResult(function () {

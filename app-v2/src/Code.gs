@@ -57,6 +57,26 @@ function apiCreateCustomer(input) { return CustomerService.create(input); }
 function apiUpdateCustomer(id, patch) { return CustomerService.update(id, patch); }
 function apiDeleteCustomer(id) { return CustomerService.remove(id); }
 function apiAlbums() { return AlbumService.list(); }
+function apiCreateAlbum(input) { return AlbumService.create(input); }
+
 function apiPhotos(albumId) { return PhotoService.list(albumId); }
+/** Upload a photo from the client. payload: { name, mimeType, dataBase64, album_id? }. */
+function apiUploadPhoto(payload) {
+  return guardResult(function () {
+    payload = payload || {};
+    requireFields(payload, ['name', 'dataBase64']);
+    const bytes = Utilities.base64Decode(payload.dataBase64);
+    const blob = Utilities.newBlob(bytes, payload.mimeType || 'application/octet-stream', payload.name);
+    return PhotoService.upload({ name: payload.name, blob: blob, album_id: payload.album_id });
+  });
+}
+
 function apiOrders() { return OrderService.list(); }
+function apiCreateOrder(input) { return OrderService.create(input); }
+function apiSetOrderStatus(id, next) { return OrderService.setStatus(id, next); }
+
+function apiPayments(orderId) { return PaymentService.listByOrder(orderId); }
+function apiRecordPayment(input) { return PaymentService.record(input); }
+function apiOrderPaymentStatus(orderId, total) { return PaymentService.statusForOrder(orderId, total); }
+
 function apiSearch(q) { return SearchService.search(q); }
