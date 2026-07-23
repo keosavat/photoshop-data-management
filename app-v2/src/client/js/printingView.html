@@ -1,0 +1,54 @@
+<script>
+/* printingView.html — Printing queue: create + status advance. */
+const Printing = (function(){
+  function esc(s){ return String(s==null?'':s).replace(/[&<>]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;'}[c];}); }
+  var inp='flex:1;min-width:120px;padding:9px 11px;border-radius:8px;border:1px solid var(--line);background:var(--panel-solid);color:var(--text);font-family:var(--font)';
+  var PTYPES=['Passport','Wedding','Certificate','Frame','Canvas','ID Card'];
+  var TRANS={ 'queued':['printing','cancelled'], 'printing':['done','cancelled'], 'done':['reprint'], 'reprint':['printing','cancelled'], 'cancelled':[] };
+
+  function load(el){
+    document.getElementById('hSub').textContent='ຄິວການພິມ / Printing queue';
+    el.innerHTML='<div class="glass card">'+
+      '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">'+
+        '<h3 style="margin:0">ການພິມ / Printing</h3>'+
+        '<button class="qa" id="rAdd" style="width:auto;flex-direction:row;gap:6px;padding:9px 15px">➕ ໃໝ່ / New</button>'+
+      '</div><div id="rForm" style="display:none"></div><div id="rList" style="color:var(--muted)">ກຳລັງໂຫຼດ…</div></div>';
+    document.getElementById('rAdd').onclick=toggleForm;
+    refresh();
+  }
+  function refresh(){
+    DAMS.call('apiPrintQueue').then(function(r){
+      var list=document.getElementById('rList');
+      if(!r||!r.ok){ list.innerHTML='<div style="color:#ff6b6b">⚠️ '+((r&&r.error&&r.error.code)||'Error')+'</div>'; return; }
+      var rows=r.data||[];
+      if(!rows.length){ list.innerHTML='<div style="padding:14px">ຄິວວ່າງ / Queue empty</div>'; return; }
+      list.innerHTML='<table style="width:100%;border-collapse:collapse;font-size:.86rem"><thead><tr style="text-align:left;color:var(--muted)">'+
+        '<th style="padding:8px">ID</th><th>ອໍເດີ້</th><th>ປະເພດ</th><th>ຈຳ</th><th>ສະຖານະ</th><th>ຈັດການ</th></tr></thead><tbody>'+
+        rows.map(function(j){ var nexts=(TRANS[j.status]||[]).map(function(s){return '<button class="chip" data-id="'+esc(j.print_id)+'" data-next="'+s+'" style="cursor:pointer;margin-right:4px">→'+s+'</button>';}).join('');
+          return '<tr style="border-top:1px solid var(--line)"><td style="padding:8px">'+esc(j.print_id)+'</td><td>'+esc(j.order_id)+'</td>'+
+            '<td>'+esc(j.type)+'</td><td>'+esc(j.qty)+'</td><td><span class="chip">'+esc(j.status)+'</span></td><td>'+(nexts||'—')+'</td></tr>'; }).join('')+'</tbody></table>';
+      Array.prototype.forEach.call(list.querySelectorAll('button[data-next]'),function(b){ b.onclick=function(){ DAMS.call('apiSetPrintStatus',b.getAttribute('data-id'),b.getAttribute('data-next')).then(refresh); }; });
+    });
+  }
+  function toggleForm(){
+    var f=document.getElementById('rForm');
+    if(f.style.display==='none'){ f.style.display='';
+      f.innerHTML='<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;padding:14px;background:var(--bg2);border-radius:12px">'+
+        '<input id="rOrder" placeholder="Order ID (ORD-...) *" style="'+inp+'">'+
+        '<select id="rType" style="'+inp+'">'+PTYPES.map(function(t){return '<option>'+t+'</option>';}).join('')+'</select>'+
+        '<input id="rQty" type="number" placeholder="ຈຳນວນ / Qty" value="1" style="'+inp+'">'+
+        '<button class="qa" id="rSave" style="width:auto;flex-direction:row;padding:9px 16px">💾 Save</button>'+
+        '<span id="rMsg" style="align-self:center;font-size:.8rem"></span></div>';
+      document.getElementById('rSave').onclick=save;
+    } else { f.style.display='none'; }
+  }
+  function save(){
+    var msg=document.getElementById('rMsg'); msg.style.color='var(--muted)'; msg.textContent='…';
+    DAMS.call('apiCreatePrint',{ order_id:document.getElementById('rOrder').value.trim(), type:document.getElementById('rType').value, qty:Number(document.getElementById('rQty').value||1) }).then(function(r){
+      if(!r||!r.ok){ msg.style.color='#ff6b6b'; msg.textContent='⚠️ '+((r&&r.error&&r.error.code)||'Error'); return; }
+      msg.style.color='var(--accent2)'; msg.textContent='✅ '+r.data.print_id; document.getElementById('rOrder').value=''; refresh();
+    });
+  }
+  return { load: load };
+})();
+</script>

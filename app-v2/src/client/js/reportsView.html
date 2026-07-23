@@ -1,0 +1,30 @@
+<script>
+/* reportsView.html — KPI overview + orders-by-status (Manager+). */
+const Reports = (function(){
+  function money(n){ return new Intl.NumberFormat('lo-LA').format(Number(n||0))+' ₭'; }
+  var KPIS=[['customers','ລູກຄ້າ / Customers','👤','b-green'],['albums','ອະລະບໍ້າ / Albums','📚','b-purple'],
+    ['photos','ຮູບ / Photos','🖼️','b-blue'],['orders','ອໍເດີ້ / Orders','🧾','b-amber'],
+    ['completedOrders','ສຳເລັດ / Completed','✅','b-green'],['pendingOrders','ຄ້າງ / Pending','⏳','b-amber'],
+    ['revenue','ລາຍຮັບ / Revenue','💰','b-green',true]];
+
+  function load(el){
+    document.getElementById('hSub').textContent='ລາຍງານ / Reports (Manager+)';
+    el.innerHTML='<div id="rpKpis" class="kpis" style="margin-bottom:20px"></div>'+
+      '<div class="glass card"><h3 style="margin-bottom:12px">ອໍເດີ້ຕາມສະຖານະ / Orders by status</h3><div id="rpBy" style="color:var(--muted)">…</div></div>';
+    DAMS.call('apiReportOverview').then(function(r){
+      var k=document.getElementById('rpKpis');
+      if(!r||!r.ok){ k.innerHTML='<div class="glass card">⚠️ '+((r&&r.error&&r.error.code)||'Error')+'</div>'; return; }
+      var d=r.data;
+      k.innerHTML=KPIS.map(function(x){ var val=x[4]?money(d[x[0]]):new Intl.NumberFormat().format(d[x[0]]||0);
+        return '<div class="glass kpi"><div class="top"><div class="ic '+x[3]+'">'+x[2]+'</div></div><div class="label">'+x[1]+'</div><div class="val">'+val+'</div></div>'; }).join('');
+    });
+    DAMS.call('apiOrdersByStatus').then(function(r){
+      var by=document.getElementById('rpBy');
+      if(!r||!r.ok){ by.innerHTML='<div style="color:#ff6b6b">⚠️ '+((r&&r.error&&r.error.code)||'Error')+'</div>'; return; }
+      var m=r.data||{}; var keys=Object.keys(m);
+      by.innerHTML = keys.length ? '<div style="display:flex;gap:10px;flex-wrap:wrap">'+keys.map(function(s){ return '<span class="chip" style="font-size:.82rem">'+s+': <b>'+m[s]+'</b></span>'; }).join('')+'</div>' : '<div>ຍັງບໍ່ມີອໍເດີ້</div>';
+    });
+  }
+  return { load: load };
+})();
+</script>

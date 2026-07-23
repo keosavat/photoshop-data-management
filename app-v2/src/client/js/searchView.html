@@ -1,0 +1,37 @@
+<script>
+/* searchView.html — unified search across entities the role can read. */
+const Search = (function(){
+  function esc(s){ return String(s==null?'':s).replace(/[&<>]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;'}[c];}); }
+  var inp='flex:1;min-width:200px;padding:10px 13px;border-radius:8px;border:1px solid var(--line);background:var(--panel-solid);color:var(--text);font-family:var(--font)';
+  var LABELS={ customers:'ລູກຄ້າ / Customers', albums:'ອະລະບໍ້າ / Albums', photos:'ຮູບ / Photos', orders:'ອໍເດີ້ / Orders', documents:'ເອກະສານ / Documents' };
+  var IDF={ customers:'customer_id', albums:'album_id', photos:'photo_id', orders:'order_id', documents:'document_id' };
+
+  function load(el){
+    document.getElementById('hSub').textContent='ຄົ້ນຫາລວມ / Global search';
+    el.innerHTML='<div class="glass card">'+
+      '<div style="display:flex;gap:10px;margin-bottom:14px">'+
+        '<input id="sQ" placeholder="ພິມຄຳຄົ້ນຫາ… / type to search" style="'+inp+'">'+
+        '<button class="qa" id="sGo" style="width:auto;flex-direction:row;padding:9px 18px">🔎 Search</button>'+
+      '</div><div id="sRes" style="color:var(--muted)">ພິມແລ້ວກົດ Search</div></div>';
+    var go=function(){ run(document.getElementById('sQ').value.trim()); };
+    document.getElementById('sGo').onclick=go;
+    document.getElementById('sQ').addEventListener('keydown',function(e){ if(e.key==='Enter') go(); });
+  }
+  function run(q){
+    var res=document.getElementById('sRes'); res.textContent='…';
+    DAMS.call('apiSearch', q).then(function(r){
+      if(!r||!r.ok){ res.innerHTML='<div style="color:#ff6b6b">⚠️ '+((r&&r.error&&r.error.code)||'Error')+'</div>'; return; }
+      var d=r.data||{}; var html=''; var total=0;
+      Object.keys(LABELS).forEach(function(k){
+        if(!d[k]) return; var rows=d[k]; total+=rows.length;
+        if(!rows.length) return;
+        html+='<div style="margin-bottom:14px"><div style="color:var(--muted);font-size:.8rem;margin-bottom:6px">'+LABELS[k]+' ('+rows.length+')</div>'+
+          rows.slice(0,10).map(function(o){ var id=o[IDF[k]]||''; var name=o.name||o.type||o.customer_id||'';
+            return '<div style="padding:8px 10px;border:1px solid var(--line);border-radius:8px;margin-bottom:6px;font-size:.85rem"><b>'+esc(id)+'</b> · '+esc(name)+'</div>'; }).join('')+'</div>';
+      });
+      res.innerHTML = total ? html : '<div style="padding:12px">ບໍ່ພົບຜົນ / No results</div>';
+    });
+  }
+  return { load: load };
+})();
+</script>

@@ -1,0 +1,66 @@
+<script>
+/* settingsView.html — company settings (Admin+) + user management (Owner). */
+const Settings = (function(){
+  function esc(s){ return String(s==null?'':s).replace(/[&<>]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;'}[c];}); }
+  var inp='flex:1;min-width:120px;padding:9px 11px;border-radius:8px;border:1px solid var(--line);background:var(--panel-solid);color:var(--text);font-family:var(--font)';
+  var ROLES=['Owner','Admin','Manager','Editor','Staff','Viewer'];
+
+  function load(el){
+    document.getElementById('hSub').textContent='ຕັ້ງຄ່າ / Settings';
+    el.innerHTML=
+      '<div class="glass card" style="margin-bottom:20px"><h3 style="margin-bottom:12px">ຄ່າລະບົບ / Settings (Admin+)</h3>'+
+        '<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px">'+
+          '<input id="stKey" placeholder="key (theme, company...)" style="'+inp+'">'+
+          '<input id="stVal" placeholder="value" style="'+inp+'">'+
+          '<button class="qa" id="stSave" style="width:auto;flex-direction:row;padding:9px 16px">💾 Save</button>'+
+          '<span id="stMsg" style="align-self:center;font-size:.8rem"></span></div>'+
+        '<div id="stList" style="color:var(--muted)">…</div></div>'+
+      '<div class="glass card"><h3 style="margin-bottom:12px">ຜູ້ໃຊ້ / Users (Owner)</h3>'+
+        '<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px">'+
+          '<input id="uEmail" placeholder="email *" style="'+inp+'">'+
+          '<input id="uName" placeholder="ຊື່ / name" style="'+inp+'">'+
+          '<select id="uRole" style="'+inp+'">'+ROLES.map(function(r){return '<option>'+r+'</option>';}).join('')+'</select>'+
+          '<button class="qa" id="uSave" style="width:auto;flex-direction:row;padding:9px 16px">➕ Add</button>'+
+          '<span id="uMsg" style="align-self:center;font-size:.8rem"></span></div>'+
+        '<div id="uList" style="color:var(--muted)">…</div></div>';
+    document.getElementById('stSave').onclick=saveSetting;
+    document.getElementById('uSave').onclick=addUser;
+    refreshSettings(); refreshUsers();
+  }
+  function refreshSettings(){
+    DAMS.call('apiSettingsAll').then(function(r){
+      var l=document.getElementById('stList');
+      if(!r||!r.ok){ l.innerHTML='<div style="color:#ff6b6b">⚠️ '+((r&&r.error&&r.error.code)||'Error')+' (ຕ້ອງ Admin+)</div>'; return; }
+      var rows=r.data||[];
+      l.innerHTML = rows.length ? '<div style="display:flex;gap:8px;flex-wrap:wrap">'+rows.map(function(s){ return '<span class="chip">'+esc(s.key)+' = '+esc(s.value)+'</span>'; }).join('')+'</div>' : '<div>ຍັງບໍ່ມີຄ່າ</div>';
+    });
+  }
+  function saveSetting(){
+    var msg=document.getElementById('stMsg'); msg.style.color='var(--muted)'; msg.textContent='…';
+    DAMS.call('apiSetSetting', document.getElementById('stKey').value.trim(), document.getElementById('stVal').value).then(function(r){
+      if(!r||!r.ok){ msg.style.color='#ff6b6b'; msg.textContent='⚠️ '+((r&&r.error&&r.error.code)||'Error'); return; }
+      msg.style.color='var(--accent2)'; msg.textContent='✅'; refreshSettings();
+    });
+  }
+  function refreshUsers(){
+    DAMS.call('apiListUsers').then(function(r){
+      var l=document.getElementById('uList');
+      if(!r||!r.ok){ l.innerHTML='<div style="color:#ff6b6b">⚠️ '+((r&&r.error&&r.error.code)||'Error')+' (ຕ້ອງ Owner)</div>'; return; }
+      var rows=r.data||[];
+      l.innerHTML='<table style="width:100%;border-collapse:collapse;font-size:.85rem"><thead><tr style="text-align:left;color:var(--muted)">'+
+        '<th style="padding:8px">Email</th><th>ຊື່</th><th>Role</th><th>Active</th></tr></thead><tbody>'+
+        rows.map(function(u){ return '<tr style="border-top:1px solid var(--line)"><td style="padding:8px">'+esc(u.email)+'</td>'+
+          '<td>'+esc(u.name)+'</td><td><span class="chip">'+esc(u.role)+'</span></td><td>'+esc(String(u.active))+'</td></tr>'; }).join('')+'</tbody></table>';
+    });
+  }
+  function addUser(){
+    var msg=document.getElementById('uMsg'); msg.style.color='var(--muted)'; msg.textContent='…';
+    DAMS.call('apiAddUser',{ email:document.getElementById('uEmail').value.trim(), name:document.getElementById('uName').value.trim(), role:document.getElementById('uRole').value }).then(function(r){
+      if(!r||!r.ok){ msg.style.color='#ff6b6b'; msg.textContent='⚠️ '+((r&&r.error&&r.error.code)||'Error'); return; }
+      msg.style.color='var(--accent2)'; msg.textContent='✅ '+r.data.user_id;
+      document.getElementById('uEmail').value=''; document.getElementById('uName').value=''; refreshUsers();
+    });
+  }
+  return { load: load };
+})();
+</script>
