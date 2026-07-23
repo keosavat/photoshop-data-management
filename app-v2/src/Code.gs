@@ -80,3 +80,34 @@ function apiRecordPayment(input) { return PaymentService.record(input); }
 function apiOrderPaymentStatus(orderId, total) { return PaymentService.statusForOrder(orderId, total); }
 
 function apiSearch(q) { return SearchService.search(q); }
+
+// ---- Documents ----
+function apiDocuments() { return DocumentService.list(); }
+function apiUploadDocument(payload) {
+  return guardResult(function () {
+    payload = payload || {};
+    requireFields(payload, ['name', 'type', 'dataBase64']);
+    const bytes = Utilities.base64Decode(payload.dataBase64);
+    const blob = Utilities.newBlob(bytes, payload.mimeType || 'application/octet-stream', payload.name);
+    return DocumentService.upload({ name: payload.name, type: payload.type, blob: blob, category: payload.category });
+  });
+}
+function apiDocHistory(id) { return DocumentService.history(id); }
+
+// ---- Printing ----
+function apiPrintQueue() { return PrintingService.queue(); }
+function apiCreatePrint(input) { return PrintingService.create(input); }
+function apiSetPrintStatus(id, next) { return PrintingService.setStatus(id, next); }
+function apiAssignPrint(id, user) { return PrintingService.assign(id, user); }
+
+// ---- Reports ----
+function apiReportOverview() { return ReportService.overview(); }
+function apiOrdersByStatus() { return ReportService.ordersByStatus(); }
+
+// ---- Settings + Users ----
+function apiSettingsAll() { return SettingService.all(); }
+function apiSetSetting(key, value) { return SettingService.set(key, value); }
+function apiListUsers() { return SettingService.listUsers(); }
+function apiAddUser(input) { return SettingService.addUser(input); }
+function apiSetUserRole(email, role) { return SettingService.setUserRole(email, role); }
+function apiDeactivateUser(email) { return SettingService.deactivateUser(email); }
