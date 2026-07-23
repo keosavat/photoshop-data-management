@@ -1,0 +1,108 @@
+<!-- client/js/documents.html — Document Management UI (STEP 10). §50/§13.
+     Upload (title+category), search/filter, list, preview modal, version. -->
+<script>
+  function _docCall(fn, a1, a2, a3, a4) {
+    return new Promise(function (res, rej) { google.script.run.withSuccessHandler(res).withFailureHandler(rej)[fn](a1, a2, a3, a4); });
+  }
+  function _fileToPayload(file) {
+    return new Promise(function (res, rej) {
+      var r = new FileReader();
+      r.onload = function () { var s = String(r.result); res({ name: file.name, mime: file.type || 'application/octet-stream', dataBase64: s.slice(s.indexOf(',') + 1) }); };
+      r.onerror = rej; r.readAsDataURL(file);
+    });
+  }
+
+  /* ---------- populate category dropdowns (dynamic) ---------- */
+  function loadDocCategories() {
+    _docCall('getDocCategories').then(function (cats) {
+      ['docCat', 'filterCat'].forEach(function (id) {
+        var sel = document.getElementById(id); if (!sel) return;
+        var extra = (id === 'filterCat') ? '<option value="">— ໝວດທັງໝົດ —</option>' : '';
+        sel.innerHTML = extra + cats.map(function (c) { return '<option value="' + c + '">' + c + '</option>'; }).join('');
+      });
+    });
+  }
+
+  /* ---------- upload ---------- */
+  async function handleDocUpload() {
+    var input = document.getElementById('docFile');
+    if (!input || !input.files.length) { showToast('validation.required', 'danger'); return; }
+    var title = (document.getElementById('docTitle') || {}).value || '';
+    if (!title) { showToast('validation.required', 'danger'); return; }
+    var payload = await _fileToPayload(input.files[0]);
+    payload.title = title;
+    payload.category = (document.getElementById('docCat') || {}).value || 'other';
+    payload.customerCode = (document.getElementById('docCust') || {}).value || '';
+    try {
+      var r = await _docCall('documentUpload', payload, window.__token, window.__csrf);
+      showToast('notify.saved', 'success');
+      loadDocuments();
+    } catch (e) { showToast('error.E002', 'danger'); }
+  }
+
+  /* ---------- list / search ---------- */
+  function renderDocs(list) {
+    var host = document.getElementById('docList');
+    if (!host) return;
+    if (!list.length) { host.innerHTML = '<div class="empty-state">ຍັງບໍ່ມີເອກະສານ</div>'; return; }
+    var rows = list.map(function (d) {
+      return '<tr><td>' + d.docId + '</td><td>' + (d.title || '') + '</td><td><span class="badge badge-info">' + d.category + '</span></td>' +
+        '<td>v' + (d.version || 1) + '</td><td>' + (d.customerCode || '') + '</td>' +
+        '<td><div class="row-actions">' +
+          '<button class="btn btn-ghost btn-sm" onclick="previewDoc(\'' + d.docId + '\')">👁 ເບິ່ງ</button>' +
+          '<button class="btn btn-ghost btn-sm" onclick="downloadDoc(\'' + d.docId + '\')">⬇ ໂຫລດ</button>' +
+          '<button class="btn btn-ghost btn-sm" onclick="printDoc(\'' + d.docId + '\')">🖨 ປຣີ້ນ</button>' +
+          '<button class="btn btn-ghost btn-sm" onclick="shareDoc(\'' + d.docId + '\')">🔗 ແຊ</button>' +
+        '</div></td></tr>';
+    }).join('');
+    host.innerHTML = '<table class="table"><thead><tr><th>ລະຫັດ</th><th>ຫົວຂໍ້</th><th>ໝວດ</th><th>ເວີ</th><th>ລູກຄ້າ</th><th>ຈັດການ</th></tr></thead><tbody>' + rows + '</tbody></table>';
+  }
+  function loadDocuments() {
+    var host = document.getElementById('docList'); if (host) host.innerHTML = '<div class="skeleton skeleton-line" style="width:60%"></div>';
+    _docCall('listDocuments', {}).then(renderDocs).catch(function (e) {
+      if (host) host.innerHTML = '<div class="error-state">' + (e && e.message ? e.message : 'error') + '</div>';
+    });
+  }
+  function searchDocs() {
+    var q = (document.getElementById('docQuery') || {}).value || '';
+    var cat = (document.getElementById('filterCat') || {}).value || '';
+    _docCall('searchDocuments', q, { category: cat || undefined }).then(renderDocs);
+  }
+
+  /* ---------- preview (modal + Drive iframe) ---------- */
+  function previewDoc(docId) {
+    _docCall('getDocumentPreview', docId, window.__token).then(function (r) {
+      openModal('Preview — ' + docId);
+      document.getElementById('appModalBody').innerHTML =
+        '<iframe src="' + r.previewUrl + '" style="width:100%;height:420px;border:1px solid var(--color-border);border-radius:8px"></iframe>';
+    }).catch(function () { showToast('error.E005', 'danger'); });
+  }
+
+  /* ---------- download / print / share ---------- */
+  function downloadDoc(docId) {
+    _docCall('getDocumentLinks', docId, window.__token)
+      .then(function (r) { window.open(r.download, '_blank'); })
+      .catch(function () { showToast('error.E005', 'danger'); });
+  }
+  function printDoc(docId) {
+    _docCall('getDocumentLinks', docId, window.__token)
+      .then(function (r) { window.open(r.view, '_blank'); })   // ເປີດແທັບໃໝ່ → ກົດ Ctrl+P ເພື່ອປຣີ້ນ
+      .catch(function () { showToast('error.E005', 'danger'); });
+  }
+  function shareDoc(docId) {
+    _docCall('shareDocument', docId, window.__token)
+      .then(function (r) { if (typeof showShareModal === 'function') showShareModal(docId, r.url); else copyShareLink(r.url); })
+      .catch(function () { showToast('error.E005', 'danger'); });
+  }
+
+  /* ---------- shared clipboard helper (ໃຊ້ຮ່ວມກັບ photos) ---------- */
+  window.copyShareLink = window.copyShareLink || function (url) {
+    var done = function () { if (typeof showToast === 'function') showToast('notify.saved', 'success'); };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(url).then(function () { done(); window.prompt('ລິ້ງແຊ (ກ໋ອບປີ້ແລ້ວ — Ctrl+C ອີກຄັ້ງກໍໄດ້):', url); },
+        function () { window.prompt('ກ໋ອບປີ້ລິ້ງແຊ:', url); });
+    } else { window.prompt('ກ໋ອບປີ້ລິ້ງແຊ:', url); }
+  };
+
+  function initDocuments() { loadDocCategories(); loadDocuments(); }
+</script>

@@ -1,0 +1,73 @@
+<!-- client/js/search.html — Unified Search UI (STEP 11). §47/§56.
+     Search box + advanced filters + ranking results + recent searches + saved filters + timing. -->
+<script>
+  function _sCall(fn, a1, a2, a3) {
+    return new Promise(function (res, rej) { google.script.run.withSuccessHandler(res).withFailureHandler(rej)[fn](a1, a2, a3); });
+  }
+
+  function _collectFilters() {
+    var v = function (id) { var e = document.getElementById(id); return e ? e.value : ''; };
+    var f = {};
+    if (v('sfType')) f.refType = v('sfType');
+    if (v('sfCust')) f.customerCode = v('sfCust');
+    if (v('sfOrder')) f.orderId = v('sfOrder');
+    if (v('sfCat')) f.category = v('sfCat');
+    if (v('sfStatus')) f.status = v('sfStatus');
+    if (v('sfFileType')) f.fileType = v('sfFileType');
+    if (v('sfFrom')) f.dateFrom = v('sfFrom');
+    if (v('sfTo')) f.dateTo = v('sfTo');
+    return f;
+  }
+
+  function runSearch() {
+    var q = (document.getElementById('sQuery') || {}).value || '';
+    var host = document.getElementById('sResults');
+    host.innerHTML = '<div class="skeleton skeleton-line" style="width:50%"></div>';
+    _sCall('search', q, _collectFilters(), { page: 1, size: 20 })
+      .then(function (r) {
+        document.getElementById('sMeta').textContent = r.total + ' ຜົນ · ' + r.tookMs + ' ms';
+        if (!r.results.length) { host.innerHTML = '<div class="empty-state">ບໍ່ພົບຜົນການຄົ້ນຫາ</div>'; return; }
+        host.innerHTML = '<table class="table"><thead><tr><th>ປະເພດ</th><th>ຊື່</th><th>ໝວດ</th><th>ລູກຄ້າ</th><th>ສະຖານະ</th></tr></thead><tbody>' +
+          r.results.map(function (x) {
+            var badge = x.refType === 'photo' ? 'badge-info' : 'badge-completed';
+            return '<tr><td><span class="badge ' + badge + '">' + x.refType + '</span></td><td>' + (x.name || '') +
+              '</td><td>' + (x.category || '') + '</td><td>' + (x.customerCode || '') + '</td><td>' + (x.status || '') + '</td></tr>';
+          }).join('') + '</tbody></table>';
+        loadRecent();
+      })
+      .catch(function (e) { host.innerHTML = '<div class="error-state">' + (e && e.message ? e.message : 'error') + '</div>'; });
+  }
+
+  function loadRecent() {
+    _sCall('getRecentSearches').then(function (list) {
+      var host = document.getElementById('sRecent'); if (!host) return;
+      host.innerHTML = list.length
+        ? list.map(function (q) { return '<button class="btn btn-ghost" onclick="document.getElementById(\'sQuery\').value=this.textContent;runSearch()">' + q + '</button>'; }).join(' ')
+        : '<span class="time">—</span>';
+    });
+  }
+  function saveCurrentFilter() {
+    var name = prompt('ຊື່ Filter:'); if (!name) return;
+    _sCall('saveSearchFilter', name, _collectFilters()).then(loadSaved);
+  }
+  function loadSaved() {
+    _sCall('getSavedFilters').then(function (map) {
+      var host = document.getElementById('sSaved'); if (!host) return;
+      var keys = Object.keys(map || {});
+      host.innerHTML = keys.length
+        ? keys.map(function (k) { return '<button class="btn btn-ghost" data-k="' + k + '" onclick="applySaved(\'' + k + '\')">' + k + '</button>'; }).join(' ')
+        : '<span class="time">—</span>';
+      window.__savedFilters = map;
+    });
+  }
+  function applySaved(k) {
+    var f = (window.__savedFilters || {})[k] || {};
+    var set = function (id, val) { var e = document.getElementById(id); if (e) e.value = val || ''; };
+    set('sfType', f.refType); set('sfCust', f.customerCode); set('sfOrder', f.orderId);
+    set('sfCat', f.category); set('sfStatus', f.status); set('sfFileType', f.fileType);
+    set('sfFrom', f.dateFrom); set('sfTo', f.dateTo);
+    runSearch();
+  }
+
+  function initSearch() { loadRecent(); loadSaved(); runSearch(); }
+</script>

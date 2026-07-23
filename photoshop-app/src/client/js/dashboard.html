@@ -1,0 +1,86 @@
+<!-- client/js/dashboard.html — Dashboard renderer (STEP 8). §16/§48/§40.
+     States: loading (skeleton) → data | empty | error. ໃຊ້ t() ຈາກ i18n.html. -->
+<div class="toast-wrap" id="toastWrap"></div>
+<script>
+  /* ---------- Toast (ໃຊ້ notify.* keys ຈາກ STEP 6) ---------- */
+  function showToast(key, type) {
+    var wrap = document.getElementById('toastWrap');
+    var el = document.createElement('div');
+    el.className = 'toast' + (type ? ' toast-' + type : '');
+    el.textContent = (typeof t === 'function') ? t(key) : key;
+    wrap.appendChild(el);
+    setTimeout(function () { el.remove(); }, 3000);
+  }
+
+  /* ---------- Dashboard ---------- */
+  function renderDashSkeleton(host) {
+    host.innerHTML =
+      '<div class="kpi-grid">' +
+        Array(5).join('0').split('0').map(function () {
+          return '<div class="kpi"><div class="skeleton skeleton-line" style="width:50%"></div>' +
+                 '<div class="skeleton skeleton-line" style="width:70%;height:24px"></div></div>';
+        }).join('') +
+      '</div><div class="card"><div class="skeleton skeleton-line" style="width:40%"></div>' +
+      '<div class="skeleton skeleton-line"></div><div class="skeleton skeleton-line"></div></div>';
+  }
+
+  function kpi(label, value) {
+    return '<div class="kpi"><div class="label">' + label + '</div><div class="value">' +
+           (value === null || value === undefined ? '—' : value) + '</div></div>';
+  }
+
+  function renderDashboard(host, d) {
+    var total = d.counts.customers + d.counts.photos + d.counts.documents + d.counts.orders;
+    if (!total) {
+      host.innerHTML = '<div class="card empty-state"><p>' +
+        (t ? t('app.title') : '') + '</p><p>' + (t ? t('nav.dashboard') : 'Dashboard') +
+        ' — ' + 'ຍັງບໍ່ມີຂໍ້ມູນ' + '</p></div>';
+      return;
+    }
+    var kpis = '<div class="kpi-grid">' +
+      kpi('ລູກຄ້າ', d.counts.customers) +
+      kpi(t('nav.photos'), d.counts.photos) +
+      kpi(t('nav.documents'), d.counts.documents) +
+      kpi(t('nav.orders'), d.counts.orders) +
+      kpi('ພື້ນທີ່ (MB)', d.storageUsedMB) +
+      '</div>';
+
+    var qa = '<div class="qa-grid">' +
+      '<button class="btn btn-primary" onclick="location.hash=\'photos\'">' + t('btn.upload') + '</button>' +
+      '<button class="btn btn-ghost" onclick="location.hash=\'search\'">' + t('btn.search') + '</button>' +
+      '<button class="btn btn-ghost" onclick="location.hash=\'orders\'">' + t('nav.orders') + '</button>' +
+      '<button class="btn btn-ghost" onclick="location.hash=\'documents\'">' + t('nav.documents') + '</button>' +
+      '</div>';
+
+    var rows = (d.recent || []).map(function (r) {
+      return '<li><span class="time">' + (r.at || '') + '</span> — ' + r.event +
+             ' <span class="time">(' + (r.user || '') + ')</span></li>';
+    }).join('');
+    var timeline = '<div class="card"><h3>ກິດຈະກຳລ່າສຸດ</h3>' +
+      (rows ? '<ul class="timeline">' + rows + '</ul>' : '<div class="empty-state">—</div>') + '</div>';
+
+    host.innerHTML = kpis + qa + timeline;
+  }
+
+  function loadDashboard(silent) {
+    var host = document.getElementById('dashboard');
+    if (!host) return;
+    if (!silent) renderDashSkeleton(host);   // auto-refresh = silent (ບໍ່ flash skeleton)
+    google.script.run
+      .withSuccessHandler(function (d) { renderDashboard(host, d); })
+      .withFailureHandler(function (err) {
+        if (!silent) host.innerHTML = '<div class="card error-state">' + (t ? t('error.E004') : 'Error') +
+          ' — ' + (err && err.message ? err.message : '') + '</div>';
+      })
+      .getDashboardData();
+  }
+
+  document.addEventListener('DOMContentLoaded', function () {
+    setTimeout(loadDashboard, 600);
+    // auto-refresh ທຸກ 2 ນາທີ (ສະເພາະຕອນຢູ່ໜ້າຫຼັກ) — silent, ໃຊ້ cache ຈຶ່ງໄວ
+    setInterval(function () {
+      var v = document.getElementById('dashboardView');
+      if (v && !v.hidden) loadDashboard(true);
+    }, 120000);
+  });
+</script>

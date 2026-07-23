@@ -1,0 +1,154 @@
+<!-- client/js/settings.html — Settings UI (STEP 13). Admin only (§13).
+     1 Config · 2 Feature Toggles · 3 Users · 4 Notifications · 5 Backup/Maintenance · 6 Audit Viewer. -->
+<script>
+  function _setCall(fn, a1, a2, a3) {
+    return new Promise(function (res, rej) { google.script.run.withSuccessHandler(res).withFailureHandler(rej)[fn](a1, a2, a3); });
+  }
+
+  function initSettings() {
+    var host = document.getElementById('settingsBody');
+    host.innerHTML = '<div class="skeleton skeleton-line" style="width:50%"></div>';
+    _setCall('getSettings', window.__token)
+      .then(function () { renderSettings(); })
+      .catch(function () { host.innerHTML = '<div class="card error-state">ສະເພາະ Admin ເທົ່ານັ້ນ</div>'; });
+  }
+
+  function renderSettings() {
+    var host = document.getElementById('settingsBody');
+    host.innerHTML =
+      '<div class="tabs" id="setTabs">' +
+        ['config:ລະບົບ', 'features:ຄຸນສົມບັດ', 'users:ຜູ້ໃຊ້', 'notify:ແຈ້ງເຕືອນ', 'backup:ສຳຮອງ', 'audit:ບັນທຶກ', 'metrics:ປະສິດທິພາບ'].map(function (x, i) {
+          var k = x.split(':'); return '<button data-tab="' + k[0] + '" class="' + (i === 0 ? 'active' : '') + '" onclick="setTab(\'' + k[0] + '\')">' + k[1] + '</button>';
+        }).join('') +
+      '</div><div id="setPane"></div>';
+    setTab('config');
+  }
+  function setTab(tab) {
+    document.querySelectorAll('#setTabs button').forEach(function (b) { b.classList.toggle('active', b.getAttribute('data-tab') === tab); });
+    var pane = document.getElementById('setPane');
+    if (tab === 'config') return loadConfig(pane);
+    if (tab === 'features') return loadFeatures(pane);
+    if (tab === 'users') return loadUsers(pane);
+    if (tab === 'notify') return loadNotify(pane);
+    if (tab === 'backup') return loadBackup(pane);
+    if (tab === 'audit') return loadAudit(pane);
+    if (tab === 'metrics') return loadMetrics(pane);
+  }
+
+  /* 7. Metrics & Monitoring (STEP 14) */
+  function loadMetrics(pane) {
+    _setCall('getMetricsSummary', window.__token).then(function (m) {
+      var rows = m.benchmarks.map(function (b) {
+        var badge = b.pass ? 'badge-completed' : 'badge-printing';
+        return '<tr><td>' + b.name + '</td><td>' + b.avgMs + ' ms</td><td>≤ ' + b.targetMs + ' ms</td>' +
+          '<td><span class="badge ' + badge + '">' + (b.pass ? 'PASS' : 'CHECK') + '</span></td></tr>';
+      }).join('');
+      pane.innerHTML = '<div class="card"><p class="time">ອັດຕາ Cache hit: ' + (m.cacheHitRatePct === null ? '—' : m.cacheHitRatePct + '%') + '</p>' +
+        '<table class="table"><thead><tr><th>ລາຍການ</th><th>ສະເລ່ຍ</th><th>ເປົ້າໝາຍ</th><th>ຜົນ</th></tr></thead><tbody>' + rows + '</tbody></table>' +
+        '<p class="time">(ສະເລ່ຍຈາກ CacheService — rolling window)</p></div>';
+    }).catch(function () { pane.innerHTML = '<div class="card error-state">ບໍ່ມີສິດ</div>'; });
+  }
+
+  /* 1. Config */
+  var SET_LABELS = {
+    ALLOWED_EXTENSIONS: 'ນາມສະກຸນໄຟລ໌ຮູບທີ່ອະນຸຍາດ', DEFAULT_LANGUAGE: 'ພາສາເລີ່ມຕົ້ນ',
+    DOC_CATEGORIES: 'ໝວດເອກະສານ', CACHE_TIME_SEC: 'ເວລາ Cache (ວິນາທີ)',
+    THUMBNAIL_SIZE: 'ຂະໜາດ Thumbnail (px)', DOC_ALLOWED_EXTENSIONS: 'ນາມສະກຸນເອກະສານທີ່ອະນຸຍາດ',
+    MAX_UPLOAD_MB: 'ຂະໜາດ upload ສູງສຸດ (MB)'
+  };
+  function loadConfig(pane) {
+    _setCall('getSettings', window.__token).then(function (s) {
+      pane.innerHTML = '<div class="card">' + Object.keys(s).map(function (k) {
+        return '<div class="field"><label>' + (SET_LABELS[k] || k) + ' <span class="time" style="font-size:11px">(' + k + ')</span></label><div style="display:flex;gap:8px">' +
+          '<input class="input" id="cfg_' + k + '" value="' + (s[k] === null ? '' : s[k]) + '" style="flex:1">' +
+          '<button class="btn btn-primary" onclick="saveCfg(\'' + k + '\')" data-i18n="btn.save"></button></div></div>';
+      }).join('') + '</div>';
+      if (typeof applyI18n === 'function') applyI18n(pane);
+    });
+  }
+  function saveCfg(k) {
+    _setCall('updateSetting', k, document.getElementById('cfg_' + k).value, window.__token)
+      .then(function () { showToast('notify.saved', 'success'); });
+  }
+
+  /* 2. Features */
+  function loadFeatures(pane) {
+    _setCall('getFeatureToggles', window.__token).then(function (f) {
+      pane.innerHTML = '<div class="card">' + Object.keys(f).map(function (k) {
+        return '<label class="upload-row"><input type="checkbox" ' + (f[k] ? 'checked' : '') + ' onchange="toggleFeature(\'' + k + '\',this.checked)"> ' + k + '</label>';
+      }).join('') + '</div>';
+    });
+  }
+  function toggleFeature(name, on) { _setCall('setFeatureToggle', name, on, window.__token).then(function () { showToast('notify.saved', 'success'); }); }
+
+  /* 3. Users */
+  function loadUsers(pane) {
+    _setCall('listUsers', window.__token).then(function (list) {
+      pane.innerHTML = '<div class="card"><table class="table"><thead><tr><th>ລະຫັດ</th><th>Email</th><th>ຊື່</th><th>ບົດບາດ</th><th>ໃຊ້ງານ</th></tr></thead><tbody>' +
+        list.map(function (u) {
+          return '<tr><td>' + u.userId + '</td><td>' + u.email + '</td><td>' + (u.name || '') + '</td>' +
+            '<td><select class="input" onchange="setUserRole(\'' + u.userId + '\',this.value)">' +
+            ['Admin', 'Editor', 'Viewer'].map(function (r) { return '<option ' + (u.role === r ? 'selected' : '') + '>' + r + '</option>'; }).join('') + '</select></td>' +
+            '<td><input type="checkbox" ' + (u.active === false || u.active === 'FALSE' ? '' : 'checked') + ' onchange="setUserActive(\'' + u.userId + '\',this.checked)"></td></tr>';
+        }).join('') + '</tbody></table>' +
+        '<div style="display:flex;gap:8px;margin-top:12px"><input class="input" id="nuEmail" placeholder="email"><input class="input" id="nuName" placeholder="ຊື່">' +
+        '<select class="input" id="nuRole"><option>Viewer</option><option>Editor</option><option>Admin</option></select>' +
+        '<button class="btn btn-primary" onclick="addUser()" data-i18n="btn.save"></button></div></div>';
+      if (typeof applyI18n === 'function') applyI18n(pane);
+    });
+  }
+  function setUserRole(id, role) { _setCall('updateUserRec', id, { Role: role }, window.__token).then(function () { showToast('notify.saved', 'success'); }); }
+  function setUserActive(id, on) { _setCall('updateUserRec', id, { Active: on }, window.__token).then(function () { showToast('notify.saved', 'success'); }); }
+  function addUser() {
+    _setCall('createUserRec', { email: document.getElementById('nuEmail').value, name: document.getElementById('nuName').value, role: document.getElementById('nuRole').value }, window.__token)
+      .then(function () { showToast('notify.saved', 'success'); loadUsers(document.getElementById('setPane')); });
+  }
+
+  /* 4. Notifications */
+  function loadNotify(pane) {
+    _setCall('getNotificationSettings', window.__token).then(function (n) {
+      pane.innerHTML = '<div class="card">' +
+        '<label class="upload-row"><input type="checkbox" id="nEmail" ' + (n.emailEnabled ? 'checked' : '') + '> Email</label>' +
+        '<div class="field"><label>Email ຜູ້ຮັບ</label><input class="input" id="nEmailTo" value="' + (n.emailTo || '') + '"></div>' +
+        '<label class="upload-row"><input type="checkbox" id="nTg" ' + (n.telegramEnabled ? 'checked' : '') + '> Telegram</label>' +
+        '<div class="field"><label>Telegram chat id</label><input class="input" id="nTgChat" value="' + (n.telegramChat || '') + '"></div>' +
+        '<div class="field"><label>Telegram bot token (ໃສ່ເພື່ອປ່ຽນ)</label><input class="input" id="nTgToken" placeholder="••••"></div>' +
+        '<button class="btn btn-primary" onclick="saveNotify()" data-i18n="btn.save"></button> ' +
+        '<button class="btn btn-ghost" onclick="testNotify()">ທົດສອບ</button></div>';
+      if (typeof applyI18n === 'function') applyI18n(pane);
+    });
+  }
+  function saveNotify() {
+    var patch = {
+      NOTIFY_EMAIL_ENABLED: document.getElementById('nEmail').checked, NOTIFY_EMAIL_TO: document.getElementById('nEmailTo').value,
+      NOTIFY_TELEGRAM_ENABLED: document.getElementById('nTg').checked, NOTIFY_TELEGRAM_CHAT: document.getElementById('nTgChat').value
+    };
+    var tok = document.getElementById('nTgToken').value; if (tok) patch.NOTIFY_TELEGRAM_TOKEN = tok;
+    _setCall('updateNotificationSettings', patch, window.__token).then(function () { showToast('notify.saved', 'success'); });
+  }
+  function testNotify() { _setCall('testNotification', window.__token).then(function () { showToast('notify.saved', 'success'); }); }
+
+  /* 5. Backup & Maintenance */
+  function loadBackup(pane) {
+    _setCall('listBackups', window.__token).then(function (list) {
+      pane.innerHTML = '<div class="card"><div style="display:flex;gap:8px;margin-bottom:12px">' +
+        '<button class="btn btn-primary" onclick="doBackup()">ສຳຮອງດຽວນີ້</button>' +
+        '<button class="btn btn-ghost" onclick="doMaintenance()">ບຳລຸງຮັກສາ</button></div>' +
+        '<table class="table"><thead><tr><th>ໄຟລ໌ສຳຮອງ</th><th>ວັນທີ</th><th></th></tr></thead><tbody>' +
+        list.map(function (b) { return '<tr><td>' + b.name + '</td><td>' + (b.date || '') + '</td><td><button class="btn btn-ghost" onclick="doRestore(\'' + b.fileId + '\')">ກູ້ຄືນ</button></td></tr>'; }).join('') +
+        '</tbody></table></div>';
+    });
+  }
+  function doBackup() { _setCall('backupNow', window.__token).then(function () { showToast('notify.saved', 'success'); loadBackup(document.getElementById('setPane')); }); }
+  function doMaintenance() { _setCall('runMaintenance', window.__token).then(function () { showToast('notify.saved', 'success'); }); }
+  function doRestore(id) { if (!confirm('ສະຫຼັບຖານຂໍ້ມູນໄປໃຊ້ backup ນີ້?')) return; _setCall('restoreFromBackup', id, window.__token).then(function () { showToast('notify.saved', 'success'); }); }
+
+  /* 6. Audit Viewer */
+  function loadAudit(pane) {
+    _setCall('getAuditLogs', { page: 1, size: 25 }, window.__token).then(function (r) {
+      pane.innerHTML = '<div class="card"><p class="time">' + r.total + ' ລາຍການ</p><table class="table"><thead><tr><th>ເວລາ</th><th>ເຫດການ</th><th>ຜູ້ໃຊ້</th><th>ລາຍລະອຽດ</th></tr></thead><tbody>' +
+        r.rows.map(function (x) { return '<tr><td>' + (x.at || '') + '</td><td>' + x.event + '</td><td>' + (x.user || '') + '</td><td>' + (x.detail || '') + '</td></tr>'; }).join('') +
+        '</tbody></table></div>';
+    });
+  }
+</script>

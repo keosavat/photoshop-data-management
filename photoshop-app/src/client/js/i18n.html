@@ -1,0 +1,46 @@
+<!-- client/js/i18n.html — client i18n helper + Language Switcher (STEP 6). §14 -->
+<script>
+  // bundle ໄດ້ຈາກ server (getI18nBundle) ຕອນໂຫຼດ
+  var I18N_BUNDLE = {};
+
+  /** ຕັ້ງ bundle ແລະ apply ໃສ່ໜ້າ. */
+  function initI18n(bundle) {
+    I18N_BUNDLE = bundle || {};
+    applyI18n();
+  }
+
+  /** t('welcome', {name:'A'}) — client-side translate + param replace + fallback key. */
+  function t(key, params) {
+    var s = (key in I18N_BUNDLE) ? I18N_BUNDLE[key] : key;
+    if (params) {
+      s = String(s).replace(/\{(\w+)\}/g, function (m, k) {
+        return (k in params) ? params[k] : m;
+      });
+    }
+    return s;
+  }
+
+  /** ແປທຸກ element ທີ່ມີ data-i18n (textContent) ແລະ data-i18n-ph (placeholder). */
+  function applyI18n(root) {
+    root = root || document;
+    root.querySelectorAll('[data-i18n]').forEach(function (el) {
+      el.textContent = t(el.getAttribute('data-i18n'));
+    });
+    root.querySelectorAll('[data-i18n-ph]').forEach(function (el) {
+      el.setAttribute('placeholder', t(el.getAttribute('data-i18n-ph')));
+    });
+  }
+
+  /** Language Switcher — ປ່ຽນພາສາທັນທີ (ບໍ່ reload): server ບັນທຶກ + ຄືນ bundle ໃໝ່. */
+  function switchLanguage(lang) {
+    google.script.run
+      .withSuccessHandler(function (bundle) { initI18n(bundle); })
+      .withFailureHandler(function (err) { console.error('i18n switch failed', err); })
+      .setUserLanguageAndBundle(lang);
+  }
+
+  // ໂຫຼດ bundle ຕອນເລີ່ມ
+  document.addEventListener('DOMContentLoaded', function () {
+    google.script.run.withSuccessHandler(initI18n).getI18nBundle();
+  });
+</script>

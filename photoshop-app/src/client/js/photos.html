@@ -1,0 +1,148 @@
+<!-- client/js/photos.html — Photo Archive UI (STEP 9). §53 workflow, §55 state, §56 SLA.
+     Batch upload (client loop = per-file progress + error recovery), CSRF, lazy gallery. -->
+<script>
+  /* ---------- read file → base64 (strip data: prefix) ---------- */
+  function fileToPayload(file) {
+    return new Promise(function (resolve, reject) {
+      var r = new FileReader();
+      r.onload = function () {
+        var s = String(r.result); var i = s.indexOf(',');
+        resolve({ name: file.name, mime: file.type || 'application/octet-stream', dataBase64: s.slice(i + 1) });
+      };
+      r.onerror = reject;
+      r.readAsDataURL(file);
+    });
+  }
+
+  function serverCall(fn, arg1, arg2, arg3, arg4) {
+    return new Promise(function (resolve, reject) {
+      google.script.run.withSuccessHandler(resolve).withFailureHandler(reject)[fn](arg1, arg2, arg3, arg4);
+    });
+  }
+
+  /* ---------- Batch upload with per-file progress + error recovery ---------- */
+  async function handleFiles(fileList) {
+    var host = document.getElementById('uploadLog');
+    var bar = document.getElementById('progBar');
+    var cust = ((document.getElementById('custCode') || {}).value || '').trim();
+    if (!cust) { alert('ກະລຸນາໃສ່ Customer Code ກ່ອນ Upload'); if (typeof showToast === 'function') showToast('validation.required', 'danger'); return; }
+    var cat = (document.getElementById('catSel') || {}).value || 'general';
+    var files = Array.prototype.slice.call(fileList);
+    var done = 0, okN = 0, failN = 0, dupN = 0;
+    host.innerHTML = '';
+    for (var i = 0; i < files.length; i++) {
+      var f = files[i];
+      var row = document.createElement('div'); row.className = 'upload-row'; row.textContent = f.name + ' …';
+      host.appendChild(row);
+      try {
+        var payload = await fileToPayload(f);
+        payload.customerCode = cust; payload.category = cat;
+        var res = await serverCall('photoUpload', payload, window.__token, window.__csrf);
+        if (res && res.duplicate) { row.innerHTML = f.name + ' <span class="dup">— ຊ້ຳ (' + res.existing + ')</span>'; dupN++; }
+        else { row.innerHTML = f.name + ' <span class="ok">— ✔ ' + res.photoId + '</span>'; okN++; }
+      } catch (e) {
+        row.innerHTML = f.name + ' <span class="fail">— ✗ ' + (e && e.message ? e.message : 'failed') + '</span>'; failN++;
+      }
+      done++; bar.style.width = Math.round(done / files.length * 100) + '%';
+    }
+    if (typeof showToast === 'function') showToast(failN ? 'error.E002' : 'notify.saved', failN ? 'danger' : 'success');
+    setTimeout(loadGallery, 1500);  // ລໍ Sheets consistency ກ່ອນ refresh gallery ອັດຕະໂນມັດ
+  }
+
+  /* ---------- render thumbs (ໃຊ້ຮ່ວມ gallery + search) ---------- */
+  function renderThumbs(photos) {
+    var g = document.getElementById('gallery');
+    if (!g) return;
+    if (!photos.length) { g.innerHTML = '<div class="empty-state">ບໍ່ພົບຮູບ</div>'; return; }
+    g.innerHTML = '';
+    photos.forEach(function (p) {
+      var d = document.createElement('div'); d.className = 'thumb-item';
+      var who = p.customerName ? (p.customerName + ' (' + (p.customerCode || '') + ')') : (p.customerCode || '');
+      var when = p.createdAt ? String(p.createdAt).slice(0, 10) : '';
+      d.innerHTML = '<img class="thumb" loading="lazy" src="' + (p.thumbUrl || '') + '" alt="' + p.photoId + '">' +
+        '<div class="cap"><strong>' + p.photoId + '</strong> · ' + who + '</div>' +
+        '<div class="cap">' + when + ' · ' + (p.status || '') + '</div>' +
+        '<div class="row-actions">' +
+          '<button class="btn btn-ghost btn-sm" onclick="viewPhoto(\'' + p.photoId + '\')">👁</button>' +
+          '<button class="btn btn-ghost btn-sm" onclick="downloadPhoto(\'' + p.photoId + '\')">⬇</button>' +
+          '<button class="btn btn-ghost btn-sm" onclick="printPhoto(\'' + p.photoId + '\')">🖨</button>' +
+          '<button class="btn btn-ghost btn-sm" onclick="sharePhotoLink(\'' + p.photoId + '\')">🔗</button>' +
+        '</div>';
+      g.appendChild(d);
+    });
+  }
+
+  /* ---------- Lazy-loaded gallery ---------- */
+  function loadGallery() {
+    var g = document.getElementById('gallery');
+    if (!g) return;
+    g.innerHTML = '<div class="skeleton skeleton-line" style="width:60%"></div>';
+    serverCall('listPhotos', { customerCode: (document.getElementById('custCode') || {}).value || undefined })
+      .then(function (photos) { if (!photos.length) { g.innerHTML = '<div class="empty-state">ຍັງບໍ່ມີຮູບ</div>'; return; } renderThumbs(photos); })
+      .catch(function (e) { g.innerHTML = '<div class="error-state">' + (e && e.message ? e.message : 'error') + '</div>'; });
+  }
+
+  /* ---------- ຄົ້ນຫາຮູບ (query + ໝວດ + ສະຖານະ) ---------- */
+  function searchPhotos_() {
+    var g = document.getElementById('gallery'); if (g) g.innerHTML = '<div class="skeleton skeleton-line" style="width:60%"></div>';
+    var q = (document.getElementById('photoQuery') || {}).value || '';
+    var filters = {
+      category: (document.getElementById('photoFilterCat') || {}).value || undefined,
+      status: (document.getElementById('photoFilterStatus') || {}).value || undefined,
+      customerCode: (document.getElementById('custCode') || {}).value || undefined
+    };
+    serverCall('searchPhotos', q, filters).then(renderThumbs)
+      .catch(function (e) { if (g) g.innerHTML = '<div class="error-state">' + (e && e.message ? e.message : 'error') + '</div>'; });
+  }
+  function resetPhotoSearch() {
+    var q = document.getElementById('photoQuery'); if (q) q.value = '';
+    var c = document.getElementById('photoFilterCat'); if (c) c.value = '';
+    var s = document.getElementById('photoFilterStatus'); if (s) s.value = '';
+    loadGallery();
+  }
+
+  /* ---------- view / download / print / share (ຮູບ) ---------- */
+  function viewPhoto(id) {
+    serverCall('getPhotoLinks', id, window.__token).then(function (r) {
+      if (typeof openModal === 'function') {
+        openModal('Preview — ' + id);
+        document.getElementById('appModalBody').innerHTML =
+          '<iframe src="' + r.preview + '" style="width:100%;height:420px;border:1px solid var(--color-border);border-radius:8px"></iframe>';
+      } else { window.open(r.view, '_blank'); }
+    }).catch(function () { if (typeof showToast === 'function') showToast('error.E005', 'danger'); });
+  }
+  function downloadPhoto(id) {
+    serverCall('getPhotoLinks', id, window.__token).then(function (r) { window.open(r.download, '_blank'); })
+      .catch(function () { if (typeof showToast === 'function') showToast('error.E005', 'danger'); });
+  }
+  function printPhoto(id) {
+    serverCall('getPhotoLinks', id, window.__token).then(function (r) { window.open(r.view, '_blank'); })
+      .catch(function () { if (typeof showToast === 'function') showToast('error.E005', 'danger'); });
+  }
+  function sharePhotoLink(id) {
+    serverCall('sharePhoto', id, window.__token).then(function (r) {
+      if (typeof showShareModal === 'function') showShareModal(id, r.url);
+      else if (typeof copyShareLink === 'function') copyShareLink(r.url);
+      else window.prompt('ກ໋ອບປີ້ລິ້ງແຊ:', r.url);
+    }).catch(function () { if (typeof showToast === 'function') showToast('error.E005', 'danger'); });
+  }
+
+  /* fallback ຖ້າ documents.html ຍັງບໍ່ໄດ້ນິຍາມ copyShareLink */
+  window.copyShareLink = window.copyShareLink || function (url) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(url).then(function () { window.prompt('ລິ້ງແຊ (ກ໋ອບປີ້ແລ້ວ):', url); }, function () { window.prompt('ກ໋ອບປີ້ລິ້ງແຊ:', url); });
+    } else { window.prompt('ກ໋ອບປີ້ລິ້ງແຊ:', url); }
+  };
+
+  function initPhotos() {
+    var zone = document.getElementById('uploadZone');
+    var input = document.getElementById('fileInput');
+    if (!zone || !input) return;
+    zone.onclick = function () { input.click(); };
+    input.onchange = function () { handleFiles(input.files); };
+    zone.ondragover = function (e) { e.preventDefault(); zone.classList.add('drag'); };
+    zone.ondragleave = function () { zone.classList.remove('drag'); };
+    zone.ondrop = function (e) { e.preventDefault(); zone.classList.remove('drag'); handleFiles(e.dataTransfer.files); };
+    loadGallery();
+  }
+</script>

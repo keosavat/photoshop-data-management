@@ -1,0 +1,67 @@
+<!-- client/js/reports.html — Reports & Statistics UI (STEP 12). §37/§50/§13.
+     KPI, Trend, Top Categories, Storage analytics + warning, Export (csv/xlsx/pdf). -->
+<script>
+  function _rCall(fn, a1, a2) {
+    return new Promise(function (res, rej) { google.script.run.withSuccessHandler(res).withFailureHandler(rej)[fn](a1, a2); });
+  }
+  function _bars(items, cls) {
+    var max = items.reduce(function (m, x) { return Math.max(m, x.value); }, 1);
+    return items.map(function (x) {
+      var w = Math.round(x.value / max * 100);
+      return '<div class="bar-row"><span>' + x.label + '</span><div class="bar-track"><div class="bar-fill ' + (cls || '') + '" style="width:' + w + '%"></div></div><span>' + x.value + '</span></div>';
+    }).join('');
+  }
+
+  function loadReports() {
+    var host = document.getElementById('reportBody');
+    host.innerHTML = '<div class="skeleton skeleton-line" style="width:50%"></div>';
+    Promise.all([_rCall('getKpiReport', window.__token), _rCall('getTopCategories', window.__token), _rCall('getStorageAnalytics', window.__token)])
+      .then(function (r) {
+        var kpi = r[0], top = r[1], st = r[2];
+        var kpiCards = '<div class="kpi-grid">' +
+          ['customers:ລູກຄ້າ', 'photos:ຮູບພາບ', 'documents:ເອກະສານ', 'orders:ອໍເດີ'].map(function (p) {
+            var k = p.split(':'); return '<div class="kpi"><div class="label">' + k[1] + '</div><div class="value">' + kpi[k[0]] + '</div></div>';
+          }).join('') + '<div class="kpi"><div class="label">ພື້ນທີ່ (MB)</div><div class="value">' + (kpi.storageMB || '—') + '</div></div></div>';
+
+        var storageCard = '<div class="card"><h3>ວິເຄາະພື້ນທີ່ເກັບ</h3>' +
+          '<p>' + st.usedMB + ' / ' + (st.limitMB || '—') + ' MB' + (st.percent !== null ? ' (' + st.percent + '%)' : '') +
+          (st.warn ? ' <span class="storage-warn">— ໃກ້ເຕັມ!</span>' : '') + '</p>' +
+          '<div class="bar-track" style="height:16px"><div class="bar-fill" style="width:' + (st.percent || 0) + '%;background:' + (st.warn ? 'var(--color-danger)' : 'var(--color-primary)') + '"></div></div></div>';
+
+        var topCard = '<div class="card"><h3>ໝວດຍອດນິຍົມ</h3>' +
+          '<p class="time">ຮູບພາບ</p>' + _bars(top.photoCategories.map(function (x) { return { label: x.name, value: x.count }; })) +
+          '<p class="time">ເອກະສານ</p>' + _bars(top.docCategories.map(function (x) { return { label: x.name, value: x.count }; })) +
+          '<p class="time">ປະເພດວຽກ</p>' + _bars(top.jobTypes.map(function (x) { return { label: x.name, value: x.count }; }), 'ord') +
+          '</div>';
+
+        host.innerHTML = kpiCards + storageCard + topCard + '<div class="card"><h3>ແນວໂນ້ມ</h3><div id="trendBox"></div></div>';
+        loadTrend();
+      })
+      .catch(function (e) {
+        host.innerHTML = '<div class="card error-state">' + ((e && e.message && e.message.indexOf('E005') >= 0) ? 'ບໍ່ມີສິດເບິ່ງລາຍງານ' : (e && e.message ? e.message : 'error')) + '</div>';
+      });
+  }
+
+  function loadTrend() {
+    var period = (document.getElementById('trendPeriod') || {}).value || 'monthly';
+    _rCall('getTrendReport', period, window.__token).then(function (list) {
+      var box = document.getElementById('trendBox'); if (!box) return;
+      if (!list.length) { box.innerHTML = '<div class="empty-state">—</div>'; return; }
+      box.innerHTML = _bars(list.map(function (x) { return { label: x.period, value: x.uploads }; }), 'up') +
+        '<p class="time">(ແທ່ງ = ຈຳນວນ upload ຕໍ່ຊ່ວງ)</p>';
+    });
+  }
+
+  function doExport(type, format) {
+    google.script.run.withSuccessHandler(function (res) {
+      var blob;
+      if (res.content !== undefined) blob = new Blob([res.content], { type: res.mime });
+      else { var bin = atob(res.dataBase64), arr = new Uint8Array(bin.length); for (var i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i); blob = new Blob([arr], { type: res.mime }); }
+      var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = res.filename; a.click();
+      showToast('notify.saved', 'success');
+    }).withFailureHandler(function () { showToast('error.E005', 'danger'); })
+      .exportReport(type, format, window.__token);
+  }
+
+  function initReports() { loadReports(); }
+</script>

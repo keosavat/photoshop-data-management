@@ -1,0 +1,62 @@
+<!-- client/js/orders.html — Order Tracking UI (§55 State Machine). -->
+<script>
+  function _ordCall(fn) {
+    var args = Array.prototype.slice.call(arguments, 1);
+    return new Promise(function (res, rej) {
+      var r = google.script.run.withSuccessHandler(res).withFailureHandler(rej);
+      r[fn].apply(r, args);
+    });
+  }
+
+  var ORDER_LABEL = { New: 'ໃໝ່', Uploaded: 'ອັບໂຫຼດແລ້ວ', Verified: 'ກວດແລ້ວ', Printing: 'ກຳລັງພິມ', Completed: 'ສຳເລັດ', Archived: 'ຈັດເກັບ' };
+  var ORDER_FLOW_C = ['New', 'Uploaded', 'Verified', 'Printing', 'Completed', 'Archived'];
+
+  function orderBadge(s) {
+    var c = s === 'Completed' ? 'badge-completed' : (s === 'Printing' ? 'badge-printing' : 'badge-info');
+    return '<span class="badge ' + c + '">' + (ORDER_LABEL[s] || s) + '</span>';
+  }
+
+  function renderOrders(list) {
+    var host = document.getElementById('orderList'); if (!host) return;
+    if (!list.length) { host.innerHTML = '<div class="empty-state">ຍັງບໍ່ມີອໍເດີ</div>'; return; }
+    var rows = list.map(function (o) {
+      var i = ORDER_FLOW_C.indexOf(o.status);
+      var next = (i >= 0 && i < ORDER_FLOW_C.length - 1) ? ORDER_FLOW_C[i + 1] : null;
+      var btn = next
+        ? '<button class="btn btn-primary" onclick="advanceOrder(\'' + o.orderId + '\',\'' + next + '\')">→ ' + (ORDER_LABEL[next] || next) + '</button>'
+        : '<span class="time">—</span>';
+      var pr = o.priority === 'Urgent' ? '<span class="badge badge-printing">ດ່ວນ</span>' : 'ປົກກະຕິ';
+      return '<tr><td>' + o.orderId + '</td><td>' + (o.customerCode || '') + '</td><td>' + (o.type || '') + '</td><td>' + pr + '</td><td>' + orderBadge(o.status) + '</td><td>' + btn + '</td></tr>';
+    }).join('');
+    host.innerHTML = '<table class="table"><thead><tr><th>ລະຫັດ</th><th>ລູກຄ້າ</th><th>ປະເພດ</th><th>ຄວາມສຳຄັນ</th><th>ສະຖານະ</th><th>ຈັດການ</th></tr></thead><tbody>' + rows + '</tbody></table>';
+  }
+
+  function loadOrders() {
+    var host = document.getElementById('orderList');
+    if (host) host.innerHTML = '<div class="skeleton skeleton-line" style="width:60%"></div>';
+    _ordCall('listOrders', {}).then(renderOrders).catch(function (e) {
+      if (host) host.innerHTML = '<div class="error-state">' + (e && e.message ? e.message : 'error') + '</div>';
+    });
+  }
+
+  function advanceOrder(id, status) {
+    _ordCall('updateOrderStatus', id, status, window.__token, window.__csrf)
+      .then(function () { showToast('notify.saved', 'success'); loadOrders(); })
+      .catch(function () { showToast('error.E005', 'danger'); });
+  }
+
+  function createOrderFromForm() {
+    var cust = ((document.getElementById('ordCust') || {}).value || '').trim();
+    if (!cust) { alert('ກະລຸນາໃສ່ Customer Code'); return; }
+    var payload = {
+      customerCode: cust,
+      type: (document.getElementById('ordType') || {}).value,
+      priority: (document.getElementById('ordPriority') || {}).value
+    };
+    _ordCall('createOrder', payload, window.__token, window.__csrf)
+      .then(function () { showToast('notify.saved', 'success'); loadOrders(); })
+      .catch(function () { showToast('error.E002', 'danger'); });
+  }
+
+  function initOrders() { loadOrders(); }
+</script>
