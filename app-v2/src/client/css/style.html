@@ -23,6 +23,9 @@ body{font-family:var(--font);color:var(--text);min-height:100vh;display:flex;
 .nav a{display:flex;align-items:center;gap:12px;padding:11px 13px;border-radius:12px;color:var(--muted);
   text-decoration:none;font-size:.9rem;transition:.15s;cursor:pointer}
 .nav a .i{width:20px;text-align:center}
+.nav a .lbl{display:flex;flex-direction:column;line-height:1.12}
+.nav a .lbl small{font-size:.66rem;opacity:.65}
+.nav a.active .lbl small{opacity:.92}
 .nav a:hover{background:var(--panel);color:var(--text)}
 .nav a.active{background:var(--grad);color:#fff;box-shadow:var(--shadow-sm)}
 .nav .sep{height:1px;background:var(--line);margin:8px 6px}
