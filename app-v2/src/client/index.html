@@ -3,7 +3,7 @@
 <head>
   <base target="_top">
   <meta charset="UTF-8">
-  <?!= include('src/client/css/style'); ?>
+  <?!= include('client/css/style'); ?>
 </head>
 <body>
   <aside class="sidebar">
@@ -12,18 +12,18 @@
       <div><b>PhotoShop</b><br><small>Enterprise DAMS v2.0</small></div>
     </div>
     <nav class="nav" id="nav">
-      <a class="active" data-k="dashboard"><span class="i">📊</span> Dashboard</a>
-      <a data-k="photos"><span class="i">🖼️</span> Photos</a>
-      <a data-k="albums"><span class="i">📚</span> Albums</a>
-      <a data-k="customers"><span class="i">👤</span> Customers</a>
-      <a data-k="documents"><span class="i">📄</span> Documents</a>
-      <a data-k="orders"><span class="i">🧾</span> Orders</a>
-      <a data-k="printing"><span class="i">🖨️</span> Printing</a>
-      <a data-k="payments"><span class="i">💵</span> Payments</a>
+      <a class="active" data-k="dashboard"><span class="i">📊</span><span class="lbl"><b>Dashboard</b><small>ພາບລວມ</small></span></a>
+      <a data-k="photos"><span class="i">🖼️</span><span class="lbl"><b>Photos</b><small>ຮູບພາບ</small></span></a>
+      <a data-k="albums"><span class="i">📚</span><span class="lbl"><b>Albums</b><small>ອະລະບໍ້າ</small></span></a>
+      <a data-k="customers"><span class="i">👤</span><span class="lbl"><b>Customers</b><small>ລູກຄ້າ</small></span></a>
+      <a data-k="documents"><span class="i">📄</span><span class="lbl"><b>Documents</b><small>ເອກະສານ</small></span></a>
+      <a data-k="orders"><span class="i">🧾</span><span class="lbl"><b>Orders</b><small>ອໍເດີ້</small></span></a>
+      <a data-k="printing"><span class="i">🖨️</span><span class="lbl"><b>Printing</b><small>ການພິມ</small></span></a>
+      <a data-k="payments"><span class="i">💵</span><span class="lbl"><b>Payments</b><small>ຊຳລະ</small></span></a>
       <div class="sep"></div>
-      <a data-k="search"><span class="i">🔍</span> Search</a>
-      <a data-k="reports"><span class="i">📈</span> Reports</a>
-      <a data-k="settings"><span class="i">⚙️</span> Settings</a>
+      <a data-k="search"><span class="i">🔍</span><span class="lbl"><b>Search</b><small>ຄົ້ນຫາ</small></span></a>
+      <a data-k="reports"><span class="i">📈</span><span class="lbl"><b>Reports</b><small>ລາຍງານ</small></span></a>
+      <a data-k="settings"><span class="i">⚙️</span><span class="lbl"><b>Settings</b><small>ຕັ້ງຄ່າ</small></span></a>
     </nav>
     <div style="flex:1"></div>
     <a style="color:var(--muted);padding:11px 13px;text-decoration:none;font-size:.85rem" href="#">↩︎ Logout</a>
@@ -62,7 +62,7 @@
     </main>
   </div>
 
-  <?!= include('src/client/js/app'); ?>
-  <?!= include('src/client/js/dashboard'); ?>
+  <?!= include('client/js/app'); ?>
+  <?!= include('client/js/dashboard'); ?>
 </body>
 </html>
