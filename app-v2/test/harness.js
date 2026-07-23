@@ -29,6 +29,7 @@ const SRC_ORDER = [
   'src/services/SearchService.gs',
   'src/services/ReportService.gs',
   'src/services/SettingService.gs',
+  'src/Setup.gs',
   'src/Code.gs'
 ];
 
