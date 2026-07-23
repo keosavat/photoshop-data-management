@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="lo" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PhotoShop Enterprise DAMS — Dashboard (Preview)</title>
+<style>
+/* ============ 02 · Design System tokens ============ */
+:root{
+  --radius: 18px; --radius-sm: 12px;
+  --gap: 20px;
+  --font: "Noto Sans Lao","Segoe UI",system-ui,-apple-system,sans-serif;
+  --shadow: 0 8px 30px rgba(0,0,0,.25);
+  --shadow-sm: 0 2px 10px rgba(0,0,0,.15);
+  --blur: 14px;
+}
+[data-theme="dark"]{
+  --bg: #0d1524; --bg2:#0a101c;
+  --panel: rgba(30,42,66,.55); --panel-solid:#1a2540;
+  --line: rgba(255,255,255,.08);
+  --text:#eaf1fb; --muted:#93a4c4;
+  --accent:#4da3ff; --accent2:#7bd88f; --accent3:#c084fc;
+  --grad: linear-gradient(135deg,#4da3ff,#7b61ff);
+}
+[data-theme="light"]{
+  --bg:#eef3fb; --bg2:#e4ecf7;
+  --panel: rgba(255,255,255,.75); --panel-solid:#ffffff;
+  --line: rgba(15,30,60,.10);
+  --text:#12233f; --muted:#5b6b86;
+  --accent:#2b7fff; --accent2:#22a95b; --accent3:#8b5cf6;
+  --grad: linear-gradient(135deg,#2b7fff,#7b61ff);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font);color:var(--text);
+  background:
+    radial-gradient(1200px 600px at 80% -10%, rgba(123,97,255,.18), transparent 60%),
+    radial-gradient(900px 500px at -10% 20%, rgba(77,163,255,.16), transparent 55%),
+    var(--bg);
+  min-height:100vh;display:flex}
+/* ---- glass helper ---- */
+.glass{background:var(--panel);backdrop-filter:blur(var(--blur));-webkit-backdrop-filter:blur(var(--blur));
+  border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}
+
+/* ============ Sidebar ============ */
+.sidebar{width:250px;flex:none;padding:18px 14px;height:100vh;position:sticky;top:0;
+  display:flex;flex-direction:column;gap:6px;border-right:1px solid var(--line);
+  background:var(--bg2)}
+.brand{display:flex;align-items:center;gap:10px;padding:10px 12px 18px}
+.brand .logo{width:38px;height:38px;border-radius:12px;background:var(--grad);
+  display:grid;place-items:center;font-size:20px;box-shadow:var(--shadow-sm)}
+.brand b{font-size:1.02rem;line-height:1.1}
+.brand small{color:var(--muted);font-size:.72rem}
+.nav{display:flex;flex-direction:column;gap:2px;overflow:auto}
+.nav a{display:flex;align-items:center;gap:12px;padding:11px 13px;border-radius:12px;
+  color:var(--muted);text-decoration:none;font-size:.9rem;transition:.15s;cursor:pointer}
+.nav a .i{width:20px;text-align:center}
+.nav a:hover{background:var(--panel);color:var(--text)}
+.nav a.active{background:var(--grad);color:#fff;box-shadow:var(--shadow-sm)}
+.nav .sep{height:1px;background:var(--line);margin:8px 6px}
+
+/* ============ Main ============ */
+.main{flex:1;min-width:0;display:flex;flex-direction:column;height:100vh;overflow:auto}
+.topbar{position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:14px;
+  padding:14px 26px;border-bottom:1px solid var(--line);
+  background:var(--panel);backdrop-filter:blur(var(--blur))}
+.search{flex:1;max-width:460px;display:flex;align-items:center;gap:10px;
+  padding:9px 14px;border-radius:12px;background:var(--bg2);border:1px solid var(--line);color:var(--muted)}
+.search input{flex:1;background:none;border:none;outline:none;color:var(--text);font-family:var(--font)}
+.spacer{flex:1}
+.iconbtn{width:40px;height:40px;border-radius:12px;border:1px solid var(--line);background:var(--bg2);
+  color:var(--text);cursor:pointer;font-size:1rem;transition:.15s}
+.iconbtn:hover{border-color:var(--accent)}
+.avatar{width:40px;height:40px;border-radius:50%;background:var(--grad);display:grid;place-items:center;
+  color:#fff;font-weight:700}
+
+.content{padding:26px;display:flex;flex-direction:column;gap:var(--gap)}
+.page-head h1{font-size:1.5rem}
+.page-head p{color:var(--muted);margin-top:4px;font-size:.9rem}
+
+/* ---- KPI grid ---- */
+.kpis{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:var(--gap)}
+.kpi{padding:18px}
+.kpi .top{display:flex;justify-content:space-between;align-items:center}
+.kpi .ic{width:44px;height:44px;border-radius:14px;display:grid;place-items:center;font-size:20px}
+.kpi .label{color:var(--muted);font-size:.8rem;margin-top:14px}
+.kpi .val{font-size:1.7rem;font-weight:700;margin-top:2px;letter-spacing:.5px}
+.kpi .delta{font-size:.72rem;margin-top:6px}
+.up{color:var(--accent2)} .down{color:#ff6b6b}
+.b-blue{background:rgba(77,163,255,.16);color:var(--accent)}
+.b-green{background:rgba(123,216,143,.16);color:var(--accent2)}
+.b-purple{background:rgba(192,132,252,.18);color:var(--accent3)}
+.b-amber{background:rgba(255,193,84,.18);color:#ffc154}
+
+/* ---- two-column ---- */
+.cols{display:grid;grid-template-columns:1.6fr 1fr;gap:var(--gap)}
+@media(max-width:900px){.cols{grid-template-columns:1fr}}
+.card{padding:20px}
+.card h3{font-size:1rem;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between}
+.card h3 span.link{color:var(--accent);font-size:.78rem;cursor:pointer}
+.timeline{display:flex;flex-direction:column;gap:2px}
+.tl{display:flex;gap:12px;padding:11px 8px;border-radius:10px}
+.tl:hover{background:var(--bg2)}
+.tl .dot{width:34px;height:34px;border-radius:10px;flex:none;display:grid;place-items:center;font-size:15px}
+.tl .txt{flex:1;font-size:.88rem}
+.tl .txt small{display:block;color:var(--muted);font-size:.74rem;margin-top:2px}
+.tl .when{color:var(--muted);font-size:.72rem;white-space:nowrap}
+.quick{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.qa{padding:16px;border-radius:14px;background:var(--bg2);border:1px solid var(--line);cursor:pointer;
+  display:flex;flex-direction:column;gap:8px;transition:.15s}
+.qa:hover{border-color:var(--accent);transform:translateY(-2px)}
+.qa .ic{font-size:20px}
+.qa b{font-size:.9rem}
+.bar{height:8px;border-radius:6px;background:var(--bg2);overflow:hidden;margin-top:10px}
+.bar>i{display:block;height:100%;background:var(--grad)}
+.chip{font-size:.68rem;padding:3px 9px;border-radius:20px;background:var(--bg2);border:1px solid var(--line);color:var(--muted)}
+.skeleton{opacity:.5}
+.foot{color:var(--muted);font-size:.75rem;text-align:center;padding:8px 0 20px}
+</style>
+</head>
+<body>
+  <!-- ============ Sidebar ============ -->
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="logo">📸</div>
+      <div><b>PhotoShop</b><br><small>Enterprise DAMS v2.0</small></div>
+    </div>
+    <nav class="nav" id="nav">
+      <a class="active" data-k="dashboard"><span class="i">📊</span> Dashboard</a>
+      <a data-k="photos"><span class="i">🖼️</span> Photos</a>
+      <a data-k="albums"><span class="i">📚</span> Albums</a>
+      <a data-k="customers"><span class="i">👤</span> Customers</a>
+      <a data-k="documents"><span class="i">📄</span> Documents</a>
+      <a data-k="orders"><span class="i">🧾</span> Orders</a>
+      <a data-k="printing"><span class="i">🖨️</span> Printing</a>
+      <a data-k="payments"><span class="i">💵</span> Payments</a>
+      <div class="sep"></div>
+      <a data-k="search"><span class="i">🔍</span> Search</a>
+      <a data-k="reports"><span class="i">📈</span> Reports</a>
+      <a data-k="settings"><span class="i">⚙️</span> Settings</a>
+    </nav>
+    <div class="spacer" style="flex:1"></div>
+    <a class="nav" style="color:var(--muted);padding:11px 13px;text-decoration:none;font-size:.85rem">↩︎ Logout</a>
+  </aside>
+
+  <!-- ============ Main ============ -->
+  <div class="main">
+    <header class="topbar">
+      <div class="search">🔎 <input placeholder="ຄົ້ນຫາ photos, customers, orders…"></div>
+      <div class="spacer"></div>
+      <button class="iconbtn" id="langBtn" title="Language">ລາ</button>
+      <button class="iconbtn" id="themeBtn" title="Theme">🌙</button>
+      <button class="iconbtn" title="Notifications">🔔</button>
+      <div class="avatar" title="Owner">O</div>
+    </header>
+
+    <main class="content">
+      <div class="page-head">
+        <h1 id="hTitle">ພາບລວມ / Dashboard</h1>
+        <p id="hSub">ຍິນດີຕ້ອນຮັບ — ຂໍ້ມູນສະຫຼຸບຮ້ານຖ່າຍຮູບ (ຂໍ້ມູນຕົວຢ່າງ / demo)</p>
+      </div>
+
+      <section class="kpis" id="kpis"><!-- filled by JS --></section>
+
+      <section class="cols">
+        <div class="glass card">
+          <h3>ກິດຈະກຳຫຼ້າສຸດ / Recent activity <span class="link">ເບິ່ງໝົດ</span></h3>
+          <div class="timeline" id="activity"></div>
+        </div>
+        <div class="glass card">
+          <h3>ຄຳສັ່ງດ່ວນ / Quick actions</h3>
+          <div class="quick">
+            <div class="qa"><span class="ic">⬆️</span><b>Upload Photo</b><span class="chip">Staff+</span></div>
+            <div class="qa"><span class="ic">📚</span><b>New Album</b><span class="chip">Staff+</span></div>
+            <div class="qa"><span class="ic">🧾</span><b>New Order</b><span class="chip">Staff+</span></div>
+            <div class="qa"><span class="ic">💵</span><b>Record Payment</b><span class="chip">Manager+</span></div>
+          </div>
+          <h3 style="margin-top:18px">ພື້ນທີ່ຈັດເກັບ / Storage</h3>
+          <div style="display:flex;justify-content:space-between;font-size:.82rem"><span class="muted">Google Drive</span><b id="stoTxt">—</b></div>
+          <div class="bar"><i id="stoBar" style="width:0%"></i></div>
+        </div>
+      </section>
+
+      <div class="foot" id="foot">PhotoShop Enterprise DAMS · Phase 1 UI preview · ຂໍ້ມູນຕົວຢ່າງຜ່ານ mock API</div>
+    </main>
+  </div>
+
+<script>
+/* ============ API layer ============
+   ໃນ Google Apps Script ຈິງ: ໃຊ້ google.script.run.<fn>().
+   ໃນ preview ນີ້: fallback ໄປ mock ທີ່ return ຮູບແບບ Result {ok,data} ຄືກັບ services. */
+const DAMS = {
+  inGAS: (typeof google !== 'undefined' && google.script && google.script.run),
+  call(fn, ...args){
+    if(this.inGAS){
+      return new Promise((res,rej)=>{
+        google.script.run.withSuccessHandler(res).withFailureHandler(rej)[fn](...args);
+      });
+    }
+    return Promise.resolve(MOCK[fn] ? MOCK[fn](...args) : {ok:false,error:{code:'E_NOFN'}});
+  }
+};
+const MOCK = {
+  getDashboard(){
+    return { ok:true, data:{
+      kpis:{ photos:1287, albums:96, customers:342, orders:58, revenue:12850000,
+             todayUpload:34, pendingJobs:7, completedJobs:51, storagePct:64, storageTxt:'12.8 / 20 GB' },
+      activity:[
+        {ic:'⬆️',b:'b-blue',t:'ອັບໂຫຼດ 12 ຮູບ ເຂົ້າ Album ALB-0042',s:'by staff@shop.la',w:'2 ນທ'},
+        {ic:'🧾',b:'b-green',t:'ອໍເດີ້ໃໝ່ ORD-0058 (Wedding)',s:'CUS-0102 · 850,000 ₭',w:'18 ນທ'},
+        {ic:'💵',b:'b-amber',t:'ຮັບຊຳລະ PAY-0031 ຜ່ານ QR',s:'ORD-0055 · 400,000 ₭',w:'1 ຊມ'},
+        {ic:'🖨️',b:'b-purple',t:'ພິມ ID Card ສຳເລັດ PRT-0009',s:'by staff2@shop.la',w:'2 ຊມ'},
+        {ic:'👤',b:'b-blue',t:'ລູກຄ້າໃໝ່ CUS-0342',s:'ນາງ ດາວ',w:'3 ຊມ'}
+      ]
+    }};
+  }
+};
+
+/* ============ Dashboard render ============ */
+function money(n){ return new Intl.NumberFormat('lo-LA').format(n) + ' ₭'; }
+const KPI_DEFS = [
+  ['photos','ຮູບທັງໝົດ / Total Photos','🖼️','b-blue','+34 ມື້ນີ້','up'],
+  ['albums','ອະລະບໍ້າ / Albums','📚','b-purple','+3','up'],
+  ['customers','ລູກຄ້າ / Customers','👤','b-green','+5','up'],
+  ['orders','ອໍເດີ້ / Orders','🧾','b-amber','58 ທັງໝົດ',''],
+  ['revenue','ລາຍຮັບ / Revenue','💰','b-green','ເດືອນນີ້','up',true],
+  ['todayUpload','ອັບໂຫຼດມື້ນີ້ / Today','⬆️','b-blue','','' ],
+  ['pendingJobs','ວຽກຄ້າງ / Pending','⏳','b-amber','','down'],
+  ['completedJobs','ວຽກສຳເລັດ / Completed','✅','b-green','','up']
+];
+async function loadDashboard(){
+  const kEl = document.getElementById('kpis');
+  kEl.innerHTML = KPI_DEFS.map(()=>'<div class="glass kpi skeleton"><div class="val">···</div></div>').join('');
+  const r = await DAMS.call('getDashboard');
+  if(!r.ok){ kEl.innerHTML='<div class="glass card">Error: '+r.error.code+'</div>'; return; }
+  const k = r.data.kpis;
+  kEl.innerHTML = KPI_DEFS.map(d=>{
+    const [key,label,ic,badge,delta,dir,isMoney]=d;
+    const val = isMoney ? money(k[key]) : new Intl.NumberFormat().format(k[key]);
+    return `<div class="glass kpi">
+      <div class="top"><div class="ic ${badge}">${ic}</div>${delta?`<span class="delta ${dir}">${delta}</span>`:''}</div>
+      <div class="label">${label}</div><div class="val">${val}</div></div>`;
+  }).join('');
+  document.getElementById('activity').innerHTML = r.data.activity.map(a=>`
+    <div class="tl"><div class="dot ${a.b}">${a.ic}</div>
+      <div class="txt">${a.t}<small>${a.s}</small></div><div class="when">${a.w}</div></div>`).join('');
+  document.getElementById('stoTxt').textContent = k.storageTxt;
+  document.getElementById('stoBar').style.width = k.storagePct + '%';
+}
+
+/* ============ interactions ============ */
+document.getElementById('themeBtn').onclick = function(){
+  const h=document.documentElement, dark=h.getAttribute('data-theme')==='dark';
+  h.setAttribute('data-theme', dark?'light':'dark');
+  this.textContent = dark?'☀️':'🌙';
+};
+document.getElementById('nav').addEventListener('click', e=>{
+  const a=e.target.closest('a'); if(!a||!a.dataset.k) return;
+  document.querySelectorAll('#nav a').forEach(x=>x.classList.remove('active'));
+  a.classList.add('active');
+  document.getElementById('hTitle').textContent = a.textContent.trim();
+  if(a.dataset.k!=='dashboard'){
+    document.getElementById('hSub').textContent='ໂມດູນນີ້ຢູ່ໃນແຜນ Phase ຕໍ່ໄປ (backend services ພ້ອມ + tested ແລ້ວ).';
+    document.getElementById('kpis').innerHTML='<div class="glass card">🚧 '+a.textContent.trim()+' — UI ກຳລັງພັດທະນາ. Backend service ພ້ອມແລ້ວ (60/60 tests).</div>';
+    document.querySelector('.cols').style.display='none';
+  } else { location.reload(); }
+});
+loadDashboard();
+</script>
+</body>
+</html>
