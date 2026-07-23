@@ -53,6 +53,9 @@ function getDashboard() {
 
 /** Expose a few list endpoints for the client (each RBAC-guarded in its service). */
 function apiCustomers() { return CustomerService.list(); }
+function apiCreateCustomer(input) { return CustomerService.create(input); }
+function apiUpdateCustomer(id, patch) { return CustomerService.update(id, patch); }
+function apiDeleteCustomer(id) { return CustomerService.remove(id); }
 function apiAlbums() { return AlbumService.list(); }
 function apiPhotos(albumId) { return PhotoService.list(albumId); }
 function apiOrders() { return OrderService.list(); }
