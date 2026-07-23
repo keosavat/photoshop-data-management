@@ -4,8 +4,8 @@
 
 Google Apps Script · Google Drive · Google Sheets · HTML/CSS/JavaScript.
 
-> ສະຖານະ: **DRAFT / ໂຄງສ້າງ (skeleton)** — ແຕ່ລະຊຸດເປັນ outline + template ພ້ອມໃຫ້ຕື່ມເນື້ອຫາ.
-> Status: **DRAFT / skeleton** — each set is an outline + template, ready to be filled in.
+> ສະຖານະ: 🟢 **IMPLEMENTED** — ລະບົບສ້າງແລ້ວ, 11 module + 82/82 tests, deploy ແລ້ວ. ເອກະສານທັງ 10 ຊຸດຕື່ມເນື້ອຫາຈິງຄົບ.
+> Status: 🟢 **IMPLEMENTED** — system built (11 modules, 82/82 tests, deployed). All 10 doc sets filled with real content.
 
 ---
 
@@ -60,6 +60,6 @@ Google Apps Script · Google Drive · Google Sheets · HTML/CSS/JavaScript.
 
 ## ✅ ວິທີໃຊ້ / How to use
 
-ແຕ່ລະຊຸດເປັນ template ຢືນຢູ່ໄດ້ດ້ວຍຕົນເອງ. ຕື່ມເນື້ອຫາຕາມຫົວຂໍ້ໃນແຕ່ລະໄຟລ໌, ອັບເດດ `ສະຖານະ / Status` ຫົວໄຟລ໌, ແລະ ອ້າງອີງກັນຂ້າມຊຸດ (cross-reference) ເມື່ອຈຳເປັນ.
+ທຸກຊຸດ (01–10) ຕື່ມເນື້ອຫາຈິງຈາກລະບົບທີ່ສ້າງແລ້ວ (`app-v2/`) — schema, API, drive, testing, deploy, module specs, ຄູ່ມືຜູ້ໃຊ້, developer handbook. ໃຊ້ເປັນເອກະສານອ້າງອີງຂອງລະບົບ.
 
-Each set is a self-contained template. Fill sections per file, update the `Status` header, and cross-reference between sets where needed.
+All sets (01–10) are filled with real content derived from the built system (`app-v2/`) — schema, API, drive, testing, deployment, module specs, user manual, developer handbook. Use as the system's reference documentation.

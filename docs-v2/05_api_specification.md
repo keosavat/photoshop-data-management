@@ -1,43 +1,79 @@
 # 05 · API Specification
 
-**ຂໍ້ກຳນົດ API / Apps Script Endpoints** — PhotoShop Enterprise DAMS v2.0
+**ຂໍ້ກຳນົດ API / Client-callable endpoints** — PhotoShop Enterprise DAMS v2.0
 
 | | |
 |---|---|
-| ສະຖານະ / Status | 🟡 DRAFT (skeleton) |
-| ອ້າງອີງ / Based on | v1.0 `API_Documentation` |
+| ສະຖານະ / Status | 🟢 IMPLEMENTED |
+| ອ້າງອີງ / Based on | `app-v2/src/Code.gs` |
 
 ---
 
-## 1. ຮູບແບບ / Conventions
-- [ ] Transport: `google.script.run` (client) / doGet/doPost (web)
-- [ ] Request envelope, response envelope `{ok, data, error, meta}`
-- [ ] Error codes, pagination, CSRF token
-
-## 2. Services (9)
-PhotoService · AlbumService · CustomerService · OrderService · DocumentService · ReportService · SearchService · SettingService · AuthService.
-
-## 3. Endpoint template (ໃຊ້ຕໍ່ 1 method / per method)
-### `PhotoService.upload(params)`
-- **ຄຳອະທິບາຍ / Description:** …
-- **Auth / Role:** …
-- **Request:**
+## 1. Conventions
+- **Transport:** client calls server via `google.script.run.withSuccessHandler(...)[fn](args)`. Wrapped by `DAMS.call(fn, ...args)` (returns a Promise).
+- **Response envelope** (every service returns this):
 ```json
-{ "albumId": "ALB-0001", "file": "<blob>", "name": "..." }
+{ "ok": true, "data": {}, "error": null, "meta": {} }
 ```
-- **Response:**
-```json
-{ "ok": true, "data": { "photoId": "PHO-0001" } }
+On failure: `{ "ok": false, "data": null, "error": { "code": "E_...", "message": "..." } }`
+- **Error codes:** `E_VALIDATION`, `E_NOT_FOUND`, `E_UNAUTHORIZED`, `E_FORBIDDEN`, `E_DUPLICATE`, `E_QUOTA`, `E_INTERNAL`.
+- **RBAC:** every endpoint is guarded by `Auth.guard(action)` inside its service.
+
+## 2. Web entry
+| Function | Purpose |
+|---|---|
+| `doGet()` | serves `client/index` via HtmlService |
+| `include(path)` | injects a client partial |
+| `getDashboard()` | KPIs + role for the signed-in user |
+
+## 3. Endpoints by module
+
+### Customers
+| Endpoint | Min role |
+|---|---|
+| `apiCustomers()` | Viewer |
+| `apiCreateCustomer({name, phone?, email?, ...})` | Staff |
+| `apiUpdateCustomer(id, patch)` | Staff |
+| `apiDeleteCustomer(id)` | Manager |
+
+### Albums
+`apiAlbums()` (Viewer) · `apiCreateAlbum({name, customer_id?})` (Staff)
+
+### Photos
+| Endpoint | Min role |
+|---|---|
+| `apiPhotos(albumId?)` | Viewer |
+| `apiUploadPhoto({name, mimeType, dataBase64, album_id?})` | Staff |
+
+Upload decodes base64 → `Utilities.newBlob` → SHA-256 dedup → shared Drive folder.
+
+### Documents
+`apiDocuments()` (Staff) · `apiUploadDocument({name, type, dataBase64, category?})` (Editor) · `apiDocHistory(id)` (Staff)
+
+### Orders
+`apiOrders()` (Staff) · `apiCreateOrder({customer_id, type, total?})` (Staff) · `apiSetOrderStatus(id, next)` (Staff)
+
+### Payments (Manager+)
+`apiPayments(orderId)` · `apiRecordPayment({order_id, amount, method})` · `apiOrderPaymentStatus(orderId, total)`
+
+### Printing
+`apiPrintQueue()` (Staff) · `apiCreatePrint({order_id, type, qty?})` (Staff) · `apiSetPrintStatus(id, next)` (Staff) · `apiAssignPrint(id, user)` (Staff)
+
+### Search
+`apiSearch(query)` — returns only entity types the role may read.
+
+### Reports (Manager+)
+`apiReportOverview()` · `apiOrdersByStatus()`
+
+### Settings / Users
+`apiSettingsAll()` / `apiSetSetting(key, value)` (Admin+) · `apiListUsers()` / `apiAddUser({email, role, name?})` / `apiSetUserRole(email, role)` / `apiDeactivateUser(email)` (Owner)
+
+## 4. Example
+```js
+// client
+DAMS.call('apiCreateCustomer', { name: 'ນາງ ດາວ', phone: '+856 20 5551111' })
+  .then(r => r.ok ? console.log(r.data.customer_id) : alert(r.error.code));
 ```
-- **Errors:** `E_UNAUTHORIZED`, `E_QUOTA`, …
-
-- [ ] ຕື່ມທຸກ method ຂອງທຸກ service / add all methods for each service
-
-## 4. Repository interfaces
-DriveRepository · SheetRepository · CacheRepository — [ ] method signatures.
-
-## 5. Auth & Security
-- [ ] Google login, session/token, role permission, audit log (link §Security & 10)
 
 ---
 *ຕໍ່ໄປ / Next:* [06 · Module Specifications](06_module_specs/00_index.md)

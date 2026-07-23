@@ -4,39 +4,41 @@
 
 | | |
 |---|---|
-| ສະຖານະ / Status | 🟡 DRAFT (skeleton) |
-| ອ້າງອີງ / Based on | v1.0 `STEP4_GoogleDrive` |
+| ສະຖານະ / Status | 🟢 IMPLEMENTED |
+| ອ້າງອີງ / Based on | `app-v2/src/repositories/DriveRepository.gs` |
 
 ---
 
-## 1. ໂຄງສ້າງໂຟເດີ / Folder Structure
-- [ ] Root folder ID (Script Property) → per-year / per-customer / per-album layout
+## 1. Shared root folder
+`setupDriveRoot()` ສ້າງໂຟເດີ `PhotoShop-DAMS` (ໃນ Drive ຂອງ Owner) ແລ້ວເກັບ ID ໃນ Script Property **`ROOT_FOLDER_ID`**. `DriveRepository.root()` ໃຊ້ id ນີ້ ຈຶ່ງ **ທຸກຄົນ upload ບ່ອນດຽວກັນ** (ບໍ່ໄປ Drive ສ່ວນຕົວ).
+
+> multi-user (Execute-as-user): ຕ້ອງ **share ໂຟເດີ `PhotoShop-DAMS`** ໃຫ້ພະນັກງານ (Editor) ເພື່ອໃຫ້ script ແລ່ນເປັນເຂົາເຂົ້າໄດ້.
+
+## 2. Folder layout (getOrCreateFolderPath — idempotent)
 ```
 /PhotoShop-DAMS/
-  /Customers/{customer_id}/
-  /Albums/{album_id}/
-  /Documents/{type}/
-  /Orders/{order_id}/
-  /_Thumbnails/  /_RecycleBin/
+  /Albums/{album_id | _unsorted}/     ← photos
+  /Documents/{TYPE}/                   ← documents by type
+  /_RecycleBin/                        ← soft delete
 ```
 
-## 2. ການສ້າງອັດຕະໂນມັດ / Auto-create
-- [ ] Folder auto-create on first upload, idempotent
+## 3. Upload pipeline (PhotoService / DocumentService)
+1. Client reads file → base64 → `apiUploadPhoto` / `apiUploadDocument`.
+2. Server: `Utilities.base64Decode` → `Utilities.newBlob`.
+3. **SHA-256 dedup** (photos): `Utilities.computeDigest(SHA_256, bytes)` → hex. ຖ້າ hash ຊ້ຳ (status≠deleted) → return record ເກົ່າ (`meta.deduped=true`), ບໍ່ອັບຊ້ຳ.
+4. `getOrCreateFolderPath([...])` → `folder.createFile(blob)`.
+5. ເກັບ `drive_file_id`, `sha256`, `size` ໃນ Sheet.
 
-## 3. Permissions
-- [ ] Folder permission model per role (link §Security)
+## 4. Versioning (documents)
+`newVersion(id, {blob})` → upload ໄຟລ໌ໃໝ່, version+1, ບັນທຶກ `history` (JSON: version, drive_file_id, at).
 
-## 4. ໄຟລ໌ / File handling
-- [ ] Auto-rename convention · duplicate check (SHA-256) · metadata
+## 5. Soft delete
+`softDelete(file)` → ຍ້າຍໄປ `_RecycleBin/`. Sheet record `status='deleted'`. Restore = `status='active'`.
 
-## 5. Thumbnails
-- [ ] Generation, size, cache location
-
-## 6. Recycle Bin
-- [ ] Soft-delete → restore → purge policy
-
-## 7. Drive API notes
-- [ ] Quotas, batching, retry, rate-limit
+## 6. ຄວນເສີມ (future)
+- Thumbnails generation + cache
+- Per-customer folder tree
+- Quota/retry/rate-limit wrappers (see `core/` utils)
 
 ---
 *ຕໍ່ໄປ / Next:* [05 · API Specification](05_api_specification.md)

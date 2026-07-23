@@ -1,64 +1,50 @@
-# 01 · Master Development Rules
+# 01 · Master Development Rules / ກົດການພັດທະນາ
 
-**ໜັງສືກົດພັດທະນາຫຼັກ / Project Constitution** — PhotoShop Enterprise DAMS v2.0
-
-| | |
+| Status | 🟢 IMPLEMENTED |
 |---|---|
-| ສະຖານະ / Status | 🟡 DRAFT (skeleton) |
-| ເວີຊັນ / Version | 2.0 |
-| ອ້າງອີງ / Based on | v1.0 `Master_Development_Rules_v4.1` |
 
-> ເອກະສານນີ້ເປັນ **ກົດສູງສຸດ** — ຖ້າມີຄວາມຂັດແຍ້ງ, ໃຫ້ຍຶດເອກະສານນີ້.
-> This is the **highest authority** document — in case of conflict, this wins.
+ກົດຫຼັກທີ່ບັງຄັບໃຊ້ໃນ `app-v2/`. ຖ້າມີຄວາມຂັດແຍ້ງ ໃຫ້ຍຶດເອກະສານນີ້.
 
 ---
 
-## 1. ຈຸດປະສົງ / Purpose
-- ກຳນົດມາດຕະຖານກາງທັງໝົດ ເພື່ອໃຫ້ການພັດທະນາເປັນລະບຽບ ແລະ ຂະຫຍາຍໄດ້.
-- Define all shared standards so development stays consistent and scalable.
+## 1. ຫຼັກການ / Principles
+- **Test-gated phases:** ແຕ່ລະ phase ຕ້ອງ `node test/run.js` = 82/82 green ກ່ອນໄປຕໍ່ / ກ່ອນ deploy.
+- **Layered:** client → `api*` (Code.gs) → Service → Repository → Google (Sheets/Drive). ຫ້າມ client ຮຽກ Repository ໂດຍກົງ.
+- **Config ກາງ:** ຄ່າຄົງທີ່ທັງໝົດຢູ່ `Config.gs` (ບໍ່ hardcode ຊື່ tab/prefix ກະຈາຍ).
 
-## 2. ຫຼັກການສະຖາປັດຕະຍະກຳ / Architecture Principles
-- Layered: Presentation → Service → Apps Script → Repository → Storage.
-- Separation of concerns: UI ບໍ່ຮູ້ຈັກ storage ໂດຍກົງ; ຜ່ານ Service + Repository ສະເໝີ.
-- Single responsibility ຕໍ່ file/service/module.
-- [ ] ໄດອະແກຣມສະຖາປັດຕະຍະກຳ (ໃສ່ຮູບ/mermaid)
+## 2. Result envelope (ບັງຄັບ)
+ທຸກ service ຕອບ `{ ok, data, error, meta }` — ບໍ່ throw ຂ້າມ layer. Error codes:
+`E_VALIDATION · E_NOT_FOUND · E_UNAUTHORIZED · E_FORBIDDEN · E_DUPLICATE · E_QUOTA · E_INTERNAL`.
 
-## 3. ໂຄງສ້າງໂຟເດີ / Folder Structure
-```
-src/
-  components/ layouts/ pages/
-  services/ repositories/ utils/
-  assets/ (css/ js/ i18n/)
-  tests/
-```
-- [ ] ອະທິບາຍໜ້າທີ່ຂອງແຕ່ລະໂຟເດີ / describe each folder's role
+## 3. Security
+- **RBAC ທຸກ mutation:** `Auth.guard(action)` ກ່ອນ write. 6 roles, permission matrix ໃນ `AuthService.gs`.
+- **ບໍ່ເກັບ secret ໃນໂຄດ:** `SHEET_ID`, `ROOT_FOLDER_ID` ຢູ່ Script Properties.
+- **ບໍ່ log ຂໍ້ມູນສ່ວນຕົວ** (email/ໂທ) ໃນ error message.
 
-## 4. Naming Convention
-| ປະເພດ / Type | ກົດ / Rule | ຕົວຢ່າງ / Example |
-|---|---|---|
-| Service files | PascalCase + `Service` | `PhotoService.gs` |
-| Repository | PascalCase + `Repository` | `DriveRepository.gs` |
-| Functions | camelCase | `uploadPhoto()` |
-| Constants | UPPER_SNAKE | `MAX_FILE_SIZE` |
-| Sheet tabs | PascalCase | `Customers` |
-| [ ] ຕື່ມ | | |
+## 4. Data
+- **ID:** prefix + zero-pad 4 (`CUS-0001`). ສ້າງຜ່ານ `Ids.next()`.
+- **Validation:** `Validator` ກ່ອນ persist (required, type, enum).
+- **Soft delete:** `status='deleted'` (ບໍ່ລຶບແຖວ). Recycle bin ສຳລັບໄຟລ໌.
+- **Dedup:** ຮູບ = SHA-256; ຊ້ຳ → return record ເກົ່າ.
 
-## 5. ມາດຕະຖານໂຄດ / Coding Standards
-- [ ] Language style (JS/GS), 2-space indent, semicolons
-- [ ] Error handling pattern (try/catch, retry, rate-limit)
-- [ ] Logging convention → link §API / Logger util
-- [ ] Comment & JSDoc rules
-- [ ] Security rules → link `docs-v2/05` & Security section
+## 5. Naming
+- Files: `PascalCase.gs` (service), `camelCaseView.html` (view).
+- Functions: `apiXxx` (client-callable), `setupXxx` (bootstrap), private = trailing `_`.
+- Constants UPPER_SNAKE; Sheet tabs PascalCase.
+- Style: 2-space indent, semicolons, JSDoc ເທິງ public function.
 
-## 6. Git / Version Control
-- [ ] Branch model, commit message format, PR review rules
-- [ ] Versioning (semantic) & changelog
+## 6. Git / release
+- Commit ຕໍ່ phase, message ບອກ scope + test count.
+- Push ຂຶ້ນ GitHub ຫຼັງ test ຜ່ານ.
+- Deploy = `clasp push -f` → new version (ເບິ່ງ [08](08_deployment_release_guide.md)).
 
-## 7. Definition of Done (DoD)
-- [ ] Code + tests + docs updated + reviewed + deployed
+## 7. Definition of Done
+Code + test (82/82) + docs ອັບເດດ + commit/push + deploy version ໃໝ່.
 
-## 8. ພາກ​ຄວບຄຸມ​ຄຸນ​ນະ​ພາບ / Quality Gates
-- [ ] Lint, test pass, performance budget, security review
+## 8. ຫ້າມ / Don't
+- ຫ້າມ push ຖ້າ test ບໍ່ຜ່ານ.
+- ຫ້າມ client ຮຽກ Repository/SpreadsheetApp ໂດຍກົງ.
+- ຫ້າມ hardcode SHEET_ID / folder id.
 
 ---
 *ຕໍ່ໄປ / Next:* [02 · UI/UX Design System](02_uiux_design_system.md)
