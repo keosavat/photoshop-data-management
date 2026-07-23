@@ -1,29 +1,28 @@
 # Module · Photos
 
-| Status | Phase | v1.0 |
+| Status | Phase | Service |
 |---|---|---|
-| 🟡 DRAFT | 3 | STEP9 |
+| 🟢 IMPLEMENTED | 3 | `PhotoService.gs` |
 
-## 1. ຈຸດປະສົງ / Purpose
-ຈັດການຮູບພາບຫຼັກ / core photo asset management.
+## 1. Purpose
+ອັບໂຫຼດ/ຈັດການຮູບ ໄປໂຟເດີກາງ `PhotoShop-DAMS/Albums/`.
 
 ## 2. Features
-Upload · Preview · Zoom · Rename · Move · Copy · Favorite · Delete · Restore · Download · Print · Share · Rotate · Crop · Compress · Watermark · Batch Upload · Batch Delete.
+Upload (base64) · **SHA-256 dedup** · list · album ໃສ່. Soft delete → `_RecycleBin`.
 
-## 3. Gallery
-Grid · List · Large · Small · Infinite Scroll · Lazy Loading · Filter.
+## 3. UI (`photosView.html`)
+ເລືອກໄຟລ໌ → Upload → grid ຮູບ.
 
-## 4. Upload Manager
-Drag Drop · Progress · Cancel · Resume · Retry · Queue · Batch Upload.
+## 4. API / Data
+`apiPhotos` · `apiUploadPhoto` → `PhotoService.*`. Sheet **Photos** (`PHO-####`, ເກັບ sha256/drive_file_id/size). ເບິ່ງ [04 Drive](../04_google_drive_management.md).
 
-## 5. Pipeline / Rules
-- [ ] SHA-256 dedup · state machine · CSRF · thumbnail (link [04 · Drive](../04_google_drive_management.md))
+## 5. Relations
+Photo *—1 Album; Album *—1 Customer.
 
-## 6. Data / API
-- [ ] `PhotoService.*` → link [05 · API](../05_api_specification.md) · Sheet: Photos
+## 6. Permissions
+list = Viewer+; upload/delete = Staff+.
 
-## 7. Permissions
-- [ ] Upload/delete/restore per role
-
-## 8. Acceptance Criteria
-- [ ] …
+## 7. Acceptance
+- [x] dedup ຮູບຊ້ຳ (meta.deduped)
+- [x] ໄປໂຟເດີກາງ (ROOT_FOLDER_ID)
+- [x] RBAC

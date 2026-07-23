@@ -1,27 +1,23 @@
 # Module · Dashboard
 
-| Status | Phase | v1.0 |
+| Status | Phase | Service |
 |---|---|---|
-| 🟡 DRAFT | 1 | STEP8 |
+| 🟢 IMPLEMENTED | 1 | `DashboardService.gs` |
 
-## 1. ຈຸດປະສົງ / Purpose
-ໜ້າສະຫຼຸບພາບລວມລະບົບ / system overview landing page.
+## 1. Purpose
+ໜ້າພາບລວມ + role ຜູ້ໃຊ້.
 
 ## 2. Features
-Overview · Statistics · Recent Upload · Recent Customers · Storage Usage · Today's Orders · Quick Upload · Activity · Notification.
+KPI (ຮູບ/ລູກຄ້າ/ອໍເດີ້/ລາຍຮັບ) · quick actions · activity timeline · ບົດບາດ.
 
-## 3. Widgets
-Total Photos · Total Albums · Customers · Orders · Revenue · Storage · Today's Upload · Pending Jobs · Completed Jobs.
-- [ ] ຂໍ້ມູນແຫຼ່ງ (data source) ຕໍ່ widget · refresh/cache policy
+## 3. UI (`dashboard.html`)
+KPI cards + quick actions + timeline (bilingual).
 
-## 4. UI
-- [ ] Layout (grid), KPI cards, timeline, quick-actions, skeleton/empty/error/toast states
+## 4. API / Data
+`getDashboard()` → `DashboardService.*` (aggregate ຫຼາຍ Sheet).
 
-## 5. Data / API
-- [ ] `DashboardService.getOverview()` → link [05 · API](../05_api_specification.md)
+## 5. Permissions
+Viewer+ (ທຸກຄົນທີ່ login).
 
-## 6. Permissions
-- [ ] Role visibility (link §Security)
-
-## 7. Acceptance Criteria
-- [ ] …
+## 6. Acceptance
+- [x] ຕົວເລກ live · role ສະແດງຖືກ

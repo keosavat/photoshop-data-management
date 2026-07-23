@@ -1,26 +1,26 @@
 # Module · Albums
 
-| Status | Phase | v1.0 |
+| Status | Phase | Service |
 |---|---|---|
-| 🟡 DRAFT | 4 | — |
+| 🟢 IMPLEMENTED | 4 | `AlbumService.gs` |
 
-## 1. ຈຸດປະສົງ / Purpose
-ຈັດກຸ່ມຮູບເປັນອະລະບໍ້າ / group photos into albums.
+## 1. Purpose
+ຈັດກຸ່ມຮູບເປັນອະລະບໍ້າຕໍ່ລູກຄ້າ.
 
 ## 2. Features
-Create Album · Edit Album · Delete Album · Archive Album · Cover Image · Album Share · Album QR · Album Status.
+ສ້າງ · list · ຜູກ Customer. ໂຟເດີ Drive ຕໍ່ album.
 
-## 3. UI
-- [ ] Album grid, cover picker, share modal, QR generator
+## 3. UI (`albumsView.html`)
+ຟອມ ➕ (ຊື່ + Customer ID) + ລາຍການ.
 
-## 4. Data / API
-- [ ] `AlbumService.*` · Sheet: Albums · Drive: /Albums/{album_id}/
+## 4. API / Data
+`apiAlbums` · `apiCreateAlbum` → `AlbumService.*`. Sheet **Albums** (`ALB-####`).
 
-## 5. States
-- [ ] active / archived / shared
+## 5. Relations
+Album 1—* Photos; Album *—1 Customer.
 
 ## 6. Permissions
-- [ ] …
+list = Viewer+; create = Staff+.
 
-## 7. Acceptance Criteria
-- [ ] …
+## 7. Acceptance
+- [x] ID auto · validation · RBAC

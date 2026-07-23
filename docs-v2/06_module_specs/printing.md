@@ -1,26 +1,26 @@
 # Module · Printing
 
-| Status | Phase | v1.0 |
+| Status | Phase | Service |
 |---|---|---|
-| 🟡 DRAFT | 8 | — |
+| 🟢 IMPLEMENTED | 8 | `PrintingService.gs` |
 
-## 1. ຈຸດປະສົງ / Purpose
-ຈັດການວຽກພິມ / print job management.
+## 1. Purpose
+ຄິວການພິມ + state machine + assign.
 
-## 2. Print types
-Passport · Wedding · Certificate · Frame · Canvas · ID Card.
+## 2. Features
+ສ້າງວຽກ · queue · ເລື່ອນ status · assign ຜູ້ພິມ. **queued → printing → done → reprint / cancelled**.
 
-## 3. Features
-- [ ] Print queue, sizes/pricing per type, job status, assign to staff, done/reprint
+## 3. UI (`printingView.html`)
+ຟອມ ➕ (Order/ປະເພດ/ຈຳ) + ຄິວ + ປຸ່ມ status/assign.
 
-## 4. UI
-- [ ] Queue board, job card, size selector
+## 4. API / Data
+`apiPrintQueue` · `apiCreatePrint` · `apiSetPrintStatus` · `apiAssignPrint` → `PrintingService.*`. Sheet **PrintJobs** (`PRT-####`).
 
-## 5. Data / API
-- [ ] Sheet: PrintJobs · link [Orders](orders.md)
+## 5. Relations
+PrintJob *—1 Order.
 
 ## 6. Permissions
-- [ ] …
+queue = Viewer+; create/status/assign = Staff+.
 
-## 7. Acceptance Criteria
-- [ ] …
+## 7. Acceptance
+- [x] transition ຖືກ · assign · RBAC

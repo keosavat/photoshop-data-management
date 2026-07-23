@@ -1,29 +1,27 @@
 # Module · Documents
 
-| Status | Phase | v1.0 |
+| Status | Phase | Service |
 |---|---|---|
-| 🟡 DRAFT | 6 | STEP10 |
+| 🟢 IMPLEMENTED | 4 | `DocumentService.gs` |
 
-## 1. ຈຸດປະສົງ / Purpose
-ຈັດການເອກະສານ/ໄຟລ໌ / document & file management with versioning.
+## 1. Purpose
+ເກັບເອກະສານ (PDF/DOCX/…) ພ້ອມ **versioning**.
 
-## 2. Supported formats
-PDF · DOCX · XLSX · PPTX · PSD · AI · ZIP · PNG · JPEG · RAW · SVG.
+## 2. Features
+Upload (base64) · list · history/versions · soft delete. ໂຟເດີ `Documents/{TYPE}/`.
 
-## 3. Features
-Upload · Preview · Version · Download · Move · Share · Delete · History.
+## 3. UI (`documentsView.html`)
+Upload ໄຟລ໌ + ຕາຕະລາງ + ເບິ່ງ history.
 
-## 4. UI
-- [ ] Category tree, preview pane, version list
+## 4. API / Data
+`apiDocuments` · `apiUploadDocument` · `apiDocHistory` → `DocumentService.*`. Sheet **Documents** (`DOC-####`, version, history JSON).
 
-## 5. Data / API
-- [ ] `DocumentService.*` · Sheet: Documents · Drive: /Documents/{type}/
+## 5. Relations
+Document *—1 Customer/Order (optional).
 
-## 6. Version control
-- [ ] Versioning model, restore, history log
+## 6. Permissions
+list = Viewer+; upload = Staff+; delete = Manager+.
 
-## 7. Permissions
-- [ ] RBAC download
-
-## 8. Acceptance Criteria
-- [ ] …
+## 7. Acceptance
+- [x] version+1 ຕໍ່ upload ໃໝ່
+- [x] history log · RBAC

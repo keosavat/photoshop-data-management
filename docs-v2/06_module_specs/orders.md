@@ -1,26 +1,27 @@
 # Module · Orders
 
-| Status | Phase | v1.0 |
+| Status | Phase | Service |
 |---|---|---|
-| 🟡 DRAFT | 7 | — |
+| 🟢 IMPLEMENTED | 7 | `OrderService.gs` |
 
-## 1. ຈຸດປະສົງ / Purpose
-ຈັດການອໍເດີ້ / order lifecycle.
+## 1. Purpose
+ຈັດການອໍເດີ້ + state machine.
 
 ## 2. Features
-New Order · Edit · Cancel · Complete · Printing Queue · Delivery · Payment Status.
+ສ້າງ · list · ເລື່ອນ status. **new → in_progress → printing → delivery → complete / cancelled**.
 
-## 3. State machine
-- [ ] new → in_progress → printing → delivery → complete / cancelled
+## 3. UI (`ordersView.html`)
+ຟອມ ➕ (Customer/ປະເພດ/ຍອດ) + ຕາຕະລາງ + ປຸ່ມ →status.
 
-## 4. UI
-- [ ] Order form, order list, status badges, queue view
+## 4. API / Data
+`apiOrders` · `apiCreateOrder` · `apiSetOrderStatus` → `OrderService.*`. Sheet **Orders** (`ORD-####`) + **OrderItems** (`ITM-####`).
 
-## 5. Data / API
-- [ ] `OrderService.*` · Sheets: Orders, OrderItems · link [Payments](payments.md), [Printing](printing.md)
+## 5. Relations
+Order *—1 Customer; Order 1—* Items / Payments / PrintJobs.
 
 ## 6. Permissions
-- [ ] …
+list = Viewer+; create/status = Staff+; cancel = Manager+.
 
-## 7. Acceptance Criteria
-- [ ] …
+## 7. Acceptance
+- [x] transition ຖືກກົດ (state machine)
+- [x] ID auto · RBAC

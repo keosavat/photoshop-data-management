@@ -1,24 +1,23 @@
 # Module · Settings
 
-| Status | Phase | v1.0 |
+| Status | Phase | Service |
 |---|---|---|
-| 🟡 DRAFT | 11 | STEP13 |
+| 🟢 IMPLEMENTED | 11 | `SettingService.gs` |
 
-## 1. ຈຸດປະສົງ / Purpose
-ຕັ້ງຄ່າລະບົບ (Admin) / system configuration.
+## 1. Purpose
+ຄ່າລະບົບ + ຈັດການຜູ້ໃຊ້/role.
 
-## 2. Settings
-Company · Theme · Language · Drive · Sheet · Backup · Permissions · Email · SMS · Logo.
+## 2. Features
+get/set setting · list/add user · set role · deactivate user.
 
-## 3. User Roles
-Owner · Admin · Manager · Editor · Staff · Viewer.
-- [ ] ຕາຕະລາງສິດ (permission matrix) role × action
+## 3. UI (`settingsView.html`)
+ຕາຕະລາງ setting + ຕາຕະລາງຜູ້ໃຊ້ (role dropdown).
 
-## 4. Features
-- [ ] Config toggles, user management, notify (email/SMS), backup, audit viewer (Admin-only)
+## 4. API / Data
+`apiSettingsAll` · `apiSetSetting` · `apiListUsers` · `apiAddUser` · `apiSetUserRole` · `apiDeactivateUser` → `SettingService.*`. Sheet **Users** (`USR-####`), **Settings**.
 
-## 5. Data / API
-- [ ] `SettingService.*` · Sheet: Settings, Users, AuditLog
+## 5. Permissions
+setting = Admin+; user management = Owner.
 
-## 6. Acceptance Criteria
-- [ ] …
+## 6. Acceptance
+- [x] ຕັ້ງ role · deactivate · RBAC (Owner)

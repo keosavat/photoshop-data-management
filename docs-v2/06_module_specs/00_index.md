@@ -1,20 +1,25 @@
-# 06 · Module Specifications — Index
+# 06 · Module Specifications / ຂໍ້ກຳນົດໂມດູນ
 
-**ຂໍ້ກຳນົດແຕ່ລະ Module** — 1 ໄຟລ໌ຕໍ່ 1 module / one file per module.
+| Status | 🟢 IMPLEMENTED (11/11) |
+|---|---|
 
-| Module | ໄຟລ໌ / File | Phase | ອ້າງອີງ v1.0 |
+1 ໄຟລ໌ຕໍ່ 1 module. ທຸກ module ມີ Service + `api*` + UI view + tests.
+
+| Module | Service | UI view | Phase |
 |---|---|---|---|
-| Dashboard | [dashboard.md](dashboard.md) | 1 | STEP8 |
-| Photos | [photos.md](photos.md) | 3 | STEP9 |
-| Albums | [albums.md](albums.md) | 4 | — |
-| Customers | [customers.md](customers.md) | 5 | — |
-| Documents | [documents.md](documents.md) | 6 | STEP10 |
-| Orders | [orders.md](orders.md) | 7 | — |
-| Printing | [printing.md](printing.md) | 8 | — |
-| Payments | [payments.md](payments.md) | 7 | — |
-| Search | [search.md](search.md) | 9 | STEP11 |
-| Reports | [reports.md](reports.md) | 10 | STEP12 |
-| Settings | [settings.md](settings.md) | 11 | STEP13 |
+| [Dashboard](dashboard.md) | DashboardService | dashboard.html | 1 |
+| [Photos](photos.md) | PhotoService | photosView.html | 3 |
+| [Albums](albums.md) | AlbumService | albumsView.html | 4 |
+| [Customers](customers.md) | CustomerService | customersView.html | 5 |
+| [Documents](documents.md) | DocumentService | documentsView.html | 4 |
+| [Orders](orders.md) | OrderService | ordersView.html | 7 |
+| [Printing](printing.md) | PrintingService | printingView.html | 8 |
+| [Payments](payments.md) | PaymentService | paymentsView.html | 8 |
+| [Search](search.md) | SearchService | searchView.html | 9 |
+| [Reports](reports.md) | ReportService | reportsView.html | 10 |
+| [Settings](settings.md) | SettingService | settingsView.html | 11 |
 
-> ແຕ່ລະໄຟລ໌ໃຊ້ template ດຽວກັນ (Purpose · Features · UI · Data · Service/API · States · Permissions · Acceptance).
-> Each file uses the same template.
+ອ້າງອີງ: [03 Schema](../03_database_sheets_schema.md) · [05 API](../05_api_specification.md).
+
+---
+*ຕໍ່ໄປ / Next:* [07 · Testing & QA](../07_testing_qa_guide.md)

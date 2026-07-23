@@ -1,23 +1,23 @@
 # Module · Reports
 
-| Status | Phase | v1.0 |
+| Status | Phase | Service |
 |---|---|---|
-| 🟡 DRAFT | 10 | STEP12 |
+| 🟢 IMPLEMENTED | 10 | `ReportService.gs` |
 
-## 1. ຈຸດປະສົງ / Purpose
-ລາຍງານ ແລະ ສະຖິຕິ / reporting & analytics.
+## 1. Purpose
+ສະຫຼຸບ KPI + ອໍເດີ້ຕາມສະຖານະ.
 
-## 2. Reports
-Sales · Revenue · Printing · Orders · Customers · Storage · Upload · Activity.
+## 2. Features
+overview (ຮູບ/ລູກຄ້າ/ອໍເດີ້/ລາຍຮັບ) · orders-by-status.
 
-## 3. Charts
-Bar · Line · Pie · Area.
+## 3. UI (`reportsView.html`)
+KPI cards + breakdown ຕາມ status.
 
-## 4. Features
-- [ ] Date range, filters, export CSV/XLSX/PDF, role-based views
+## 4. API / Data
+`apiReportOverview` · `apiOrdersByStatus` → `ReportService.*`.
 
-## 5. Data / API
-- [ ] `ReportService.*`
+## 5. Permissions
+Manager+.
 
-## 6. Acceptance Criteria
-- [ ] …
+## 6. Acceptance
+- [x] ຕົວເລກກົງກັບ Sheet · RBAC

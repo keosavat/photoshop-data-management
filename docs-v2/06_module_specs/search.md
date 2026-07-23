@@ -1,26 +1,23 @@
 # Module · Search
 
-| Status | Phase | v1.0 |
+| Status | Phase | Service |
 |---|---|---|
-| 🟡 DRAFT | 9 | STEP11 |
+| 🟢 IMPLEMENTED | 9 | `SearchService.gs` |
 
-## 1. ຈຸດປະສົງ / Purpose
-ຄົ້ນຫາລວມທົ່ວລະບົບ / global unified search.
+## 1. Purpose
+ຄົ້ນຫາຂ້າມ module.
 
-## 2. Search across
-Photo · Album · Customer · Invoice · Order · Document.
+## 2. Features
+ຄຳຄົ້ນ → ຜົນຈັດກຸ່ມ (Customers/Photos/Documents/Orders) — ກັ່ນຕາມ role.
 
-## 3. Filters
-Keyword · Date · Tag · File Type.
+## 3. UI (`searchView.html`)
+ຊ່ອງຄົ້ນ + ຜົນແຍກກຸ່ມ.
 
-## 4. Engine
-- [ ] Unified index, incremental update, ranking, recent/saved searches
+## 4. API / Data
+`apiSearch(q)` → `SearchService.*`. ອ່ານຫຼາຍ Sheet.
 
-## 5. UI
-- [ ] Search bar, results grouped by type, filter panel
+## 5. Permissions
+ຜົນສະແດງສະເພາະ entity ທີ່ role ເບິ່ງໄດ້.
 
-## 6. Data / API
-- [ ] `SearchService.*`
-
-## 7. Acceptance Criteria
-- [ ] …
+## 6. Acceptance
+- [x] ຈັດກຸ່ມຜົນ · RBAC filter
