@@ -42,6 +42,7 @@
         <h1 id="hTitle">ພາບລວມ / Dashboard</h1>
         <p id="hSub">ກຳລັງໂຫຼດ…</p>
       </div>
+      <div id="dashView">
       <section class="kpis" id="kpis"></section>
       <section class="cols" id="cols">
         <div class="glass card">
@@ -58,11 +59,15 @@
           </div>
         </div>
       </section>
-      <div class="foot">PhotoShop Enterprise DAMS · Phase 1 UI</div>
+      </div><!-- /dashView -->
+      <div id="view" style="display:none"></div>
+      <div class="foot">PhotoShop Enterprise DAMS · Phase 2 UI</div>
     </main>
   </div>
 
   <?!= include('client/js/app'); ?>
+  <?!= include('client/js/customersView'); ?>
+  <?!= include('client/js/photosView'); ?>
   <?!= include('client/js/dashboard'); ?>
 </body>
 </html>
