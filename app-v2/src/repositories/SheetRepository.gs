@@ -22,12 +22,23 @@ class SheetRepository {
     return sh;
   }
 
-  /** Ensure a sheet exists with the given headers; create if missing. */
+  /** Ensure a sheet exists with the given headers; create if missing, and
+   *  append any missing header columns to an existing sheet (safe migration). */
   ensureSheet(name, headers) {
     let sh = this._ss().getSheetByName(name);
     if (!sh) {
       sh = this._ss().insertSheet(name);
       sh.appendRow(headers);
+      return sh;
+    }
+    if (headers && headers.length) {
+      const lastCol = sh.getLastColumn();
+      if (lastCol === 0) { sh.appendRow(headers); return sh; }
+      const existing = sh.getRange(1, 1, 1, lastCol).getValues()[0] || [];
+      const missing = headers.filter(function (h) { return existing.indexOf(h) === -1; });
+      if (missing.length) {
+        sh.getRange(1, existing.length + 1, 1, missing.length).setValues([missing]);
+      }
     }
     return sh;
   }
