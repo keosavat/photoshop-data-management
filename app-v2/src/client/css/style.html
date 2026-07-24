@@ -64,6 +64,14 @@ body{font-family:var(--font);color:var(--text);min-height:100vh;display:flex;
 .qa{padding:16px;border-radius:14px;background:var(--bg2);border:1px solid var(--line);cursor:pointer;
   display:flex;flex-direction:column;gap:8px;transition:.15s}
 .qa:hover{border-color:var(--accent);transform:translateY(-2px)}.qa .ic{font-size:20px}.qa b{font-size:.9rem}
+.btn-glow{display:inline-flex;align-items:center;justify-content:center;gap:9px;cursor:pointer;
+  padding:12px 24px;border-radius:14px;font-size:.9rem;font-weight:700;letter-spacing:.3px;
+  color:#fff;background:linear-gradient(180deg,#12203a,#0b1424);border:1.5px solid var(--accent);
+  box-shadow:0 0 0 1px rgba(77,163,255,.25),0 0 20px rgba(77,163,255,.45);transition:.18s;white-space:nowrap}
+.btn-glow:hover{box-shadow:0 0 0 1px rgba(77,163,255,.4),0 0 28px rgba(77,163,255,.7);transform:translateY(-1px)}
+.btn-glow:active{transform:translateY(0)}
+.btn-del{padding:6px 0;border:1px solid var(--line);background:var(--bg);border-radius:8px;cursor:pointer;
+  font-size:.9rem;color:#ff8a8a;transition:.15s}.btn-del:hover{border-color:#ff6b6b;background:rgba(255,107,107,.12)}
 .chip{font-size:.68rem;padding:3px 9px;border-radius:20px;background:var(--bg2);border:1px solid var(--line);color:var(--muted)}
 .skeleton{opacity:.5}.foot{color:var(--muted);font-size:.75rem;text-align:center;padding:8px 0 20px}
 </style>
