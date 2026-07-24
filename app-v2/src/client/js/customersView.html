@@ -61,7 +61,7 @@ const Customers = (function(){
     const msg = document.getElementById('fMsg');
     msg.style.color = 'var(--muted)'; msg.textContent = '…';
     DAMS.call('apiCreateCustomer', { name:name, phone:phone, email:email }).then(function(r){
-      if(!r || !r.ok){ msg.style.color = '#ff6b6b'; msg.textContent = '⚠️ '+((r&&r.error&&r.error.code)||'Error'); return; }
+      if(!r || !r.ok){ msg.style.color = '#ff6b6b'; msg.textContent = '⚠️ '+((r&&r.error&&(r.error.message||r.error.code))||'Error'); return; }
       msg.style.color = 'var(--accent2)'; msg.textContent = '✅ '+r.data.customer_id;
       document.getElementById('fName').value = '';
       document.getElementById('fPhone').value = '';
