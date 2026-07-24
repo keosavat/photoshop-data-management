@@ -91,11 +91,14 @@ const Documents = (function(){
   }
 
   function del(id){
-    if(!confirm('ລົບເອກະສານນີ້? / Delete this document? (ກູ້ຄືນໄດ້)')) return;
-    DAMS.call('apiDeleteDocument', id).then(function(r){
-      if(!r || !r.ok){ DAMS.toast('⚠️ '+((r&&r.error&&r.error.code)||'Error'), true); return; }
-      DAMS.toast('ລົບແລ້ວ / deleted'); refresh();
-    }).catch(function(e){ DAMS.toast('⚠️ '+e, true); });
+    DAMS.confirm('ລົບເອກະສານນີ້ອອກຈາກລາຍການ? ຍັງກູ້ຄືນໄດ້ພາຍຫຼັງ.<br>Delete this document? (recoverable)',
+      { title:'ລົບເອກະສານ / Delete document' }).then(function(okp){
+      if(!okp) return;
+      DAMS.call('apiDeleteDocument', id).then(function(r){
+        if(!r || !r.ok){ DAMS.toast('⚠️ '+((r&&r.error&&r.error.code)||'Error'), true); return; }
+        DAMS.toast('ລົບແລ້ວ / deleted'); refresh();
+      }).catch(function(e){ DAMS.toast('⚠️ '+e, true); });
+    });
   }
   window.__docDel = del;
 

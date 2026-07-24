@@ -90,11 +90,14 @@ const Photos = (function(){
   }
 
   function del(id){
-    if(!confirm('ລົບຮູບນີ້? / Delete this photo? (ກູ້ຄືນໄດ້)')) return;
-    DAMS.call('apiDeletePhoto', id).then(function(r){
-      if(!r || !r.ok){ DAMS.toast('⚠️ '+((r&&r.error&&r.error.code)||'Error'), true); return; }
-      DAMS.toast('ລົບແລ້ວ / deleted'); refresh();
-    }).catch(function(e){ DAMS.toast('⚠️ '+e, true); });
+    DAMS.confirm('ລົບຮູບນີ້ອອກຈາກຄັງ? ຍັງກູ້ຄືນໄດ້ພາຍຫຼັງ.<br>Delete this photo? (recoverable)',
+      { title:'ລົບຮູບ / Delete photo' }).then(function(okp){
+      if(!okp) return;
+      DAMS.call('apiDeletePhoto', id).then(function(r){
+        if(!r || !r.ok){ DAMS.toast('⚠️ '+((r&&r.error&&r.error.code)||'Error'), true); return; }
+        DAMS.toast('ລົບແລ້ວ / deleted'); refresh();
+      }).catch(function(e){ DAMS.toast('⚠️ '+e, true); });
+    });
   }
   window.__photoDel = del;
 
