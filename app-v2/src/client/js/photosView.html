@@ -27,11 +27,20 @@ const Photos = (function(){
       if(!r || !r.ok){ list.innerHTML = '<div style="color:#ff6b6b">⚠️ '+((r&&r.error&&r.error.code)||'Error')+'</div>'; return; }
       const rows = (r.data || []).filter(function(p){ return p.status !== 'deleted'; });
       if(!rows.length){ list.innerHTML = '<div style="padding:14px">ຍັງບໍ່ມີຮູບ / No photos yet — ເລືອກໄຟລ໌ແລ້ວກົດ Upload.</div>'; return; }
+      var ph = "this.style.display='none';this.nextElementSibling.style.display='flex'";
       list.innerHTML = '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px">' +
-        rows.map(function(p){ return '<div style="background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:12px">' +
-          '<div style="font-size:28px;text-align:center">🖼️</div>' +
-          '<div style="font-size:.85rem;margin-top:6px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(p.name)+'</div>' +
-          '<div style="font-size:.72rem;color:var(--muted)">'+esc(p.album_id||'—')+' · '+esc(p.status)+'</div></div>'; }).join('') +
+        rows.map(function(p){
+          var thumb = p.thumb_url
+            ? '<img loading="lazy" src="'+esc(p.thumb_url)+'" alt="'+esc(p.name)+'" onerror="'+ph+'" ' +
+                'style="width:100%;aspect-ratio:1/1;object-fit:cover;display:block;background:var(--bg)">' +
+              '<div style="display:none;width:100%;aspect-ratio:1/1;align-items:center;justify-content:center;font-size:34px;background:var(--bg)">🖼️</div>'
+            : '<div style="display:flex;width:100%;aspect-ratio:1/1;align-items:center;justify-content:center;font-size:34px;background:var(--bg)">🖼️</div>';
+          return '<div style="background:var(--bg2);border:1px solid var(--line);border-radius:12px;overflow:hidden">' +
+            thumb +
+            '<div style="padding:9px 11px">' +
+              '<div style="font-size:.85rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(p.name)+'</div>' +
+              '<div style="font-size:.72rem;color:var(--muted)">'+esc(p.album_id||'—')+' · '+esc(p.status)+'</div>' +
+            '</div></div>'; }).join('') +
         '</div>';
     });
   }
