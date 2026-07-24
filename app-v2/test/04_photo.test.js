@@ -70,3 +70,17 @@ test('list filters by album', function () {
   PhotoService.upload({ name: '2', blob: __blob('2', 'b'), album_id: 'ALB-2' });
   assertEqual(PhotoService.list('ALB-1').data.length, 1);
 });
+
+test('thumbnail url is derived from drive_file_id', function () {
+  seedAuthP();
+  __setUser('staff@test.la');
+  var up = PhotoService.upload({ name: 'a.jpg', blob: __blob('a.jpg', 'THUMB') }).data;
+  assert(up.thumb_url.indexOf(up.drive_file_id) !== -1, 'upload return has thumb_url with file id');
+
+  var listed = PhotoService.list().data[0];
+  assert(listed.thumb_url.indexOf('drive.google.com/thumbnail') !== -1, 'list item has drive thumbnail url');
+  assert(listed.thumb_url.indexOf(listed.drive_file_id) !== -1, 'thumb_url references its own file id');
+
+  var got = PhotoService.get(up.photo_id).data;
+  assertEqual(got.thumb_url, up.thumb_url, 'get returns same thumb_url');
+});
