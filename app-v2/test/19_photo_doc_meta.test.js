@@ -45,6 +45,25 @@ test('document upload persists category', function () {
   assertEqual(DocumentService.list().data[0].category, 'ສັນຍາ');
 });
 
+test('delete endpoints soft-delete (reversible) with RBAC', function () {
+  seedMeta();
+  __seed('Photos', PHOTO_HEADERS, []);
+  __seed('Documents', DOCUMENT_HEADERS, []);
+  __setUser('owner@test.la');
+  var p = PhotoService.upload({ name: 'p.jpg', blob: __blob('p.jpg', 'DEL') }).data;
+  var d = DocumentService.upload({ name: 'Doc', type: 'PDF', blob: __blob('d.pdf', 'DEL') }).data;
+
+  assertEqual(apiDeletePhoto(p.photo_id).data.status, 'deleted');
+  assertEqual(apiDeleteDocument(d.document_id).data.status, 'deleted');
+  // restore keeps data (not permanently removed)
+  assertEqual(DocumentService.restore(d.document_id).data.status, 'active');
+
+  __setUser('staff@test.la'); // Staff can soft-delete photos, not documents (Editor+)
+  var p2 = PhotoService.upload({ name: 'p2.jpg', blob: __blob('p2.jpg', 'DEL2') }).data;
+  assertEqual(apiDeletePhoto(p2.photo_id).data.status, 'deleted');
+  assertEqual(apiDeleteDocument(d.document_id).error.code, ERR.FORBIDDEN);
+});
+
 test('ensureSheet migrates missing columns on existing sheet', function () {
   seedMeta();
   // Seed Photos with the OLD header set (no customer_name / photo_date).
