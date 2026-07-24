@@ -60,14 +60,33 @@ function apiAlbums() { return AlbumService.list(); }
 function apiCreateAlbum(input) { return AlbumService.create(input); }
 
 function apiPhotos(albumId) { return PhotoService.list(albumId); }
-/** Upload a photo from the client. payload: { name, mimeType, dataBase64, album_id? }. */
+/** Upload a photo. payload: { name, mimeType, dataBase64, album_id?, customer_id?, customer_name?, photo_date? }. */
 function apiUploadPhoto(payload) {
   return guardResult(function () {
     payload = payload || {};
     requireFields(payload, ['name', 'dataBase64']);
     const bytes = Utilities.base64Decode(payload.dataBase64);
     const blob = Utilities.newBlob(bytes, payload.mimeType || 'application/octet-stream', payload.name);
-    return PhotoService.upload({ name: payload.name, blob: blob, album_id: payload.album_id });
+    return PhotoService.upload({
+      name: payload.name, blob: blob, album_id: payload.album_id,
+      customer_id: payload.customer_id, customer_name: payload.customer_name, photo_date: payload.photo_date
+    });
+  });
+}
+
+/** Make a Drive file link-shareable (anyone with link can view) and return the URL.
+ *  Used by the View/Share buttons. Requires a signed-in reader. */
+function apiShareLink(fileId) {
+  return guardResult(function () {
+    Auth.guard('photo.read');
+    if (!fileId) throw AppError(ERR.VALIDATION, 'fileId required');
+    const file = DriveApp.getFileById(fileId);
+    try { file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW); } catch (e) {}
+    return ok({
+      view: 'https://drive.google.com/file/d/' + fileId + '/view',
+      download: 'https://drive.google.com/uc?export=download&id=' + fileId,
+      share: 'https://drive.google.com/file/d/' + fileId + '/view?usp=sharing'
+    });
   });
 }
 
