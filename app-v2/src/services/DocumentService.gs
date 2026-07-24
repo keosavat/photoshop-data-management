@@ -83,6 +83,19 @@ const DocumentService = {
       return ok(parseHistory_(d.history));
     });
   },
+  /** Soft delete (reversible): mark status='deleted'. Editor+ (document.write). */
+  softDelete: function (id) {
+    return guardResult(function () {
+      Auth.guard('document.write');
+      return ok(DocumentService._repo().update(CONFIG.SHEETS.Documents, 'document_id', id, { status: 'deleted' }));
+    });
+  },
+  restore: function (id) {
+    return guardResult(function () {
+      Auth.guard('document.write');
+      return ok(DocumentService._repo().update(CONFIG.SHEETS.Documents, 'document_id', id, { status: 'active' }));
+    });
+  },
   remove: function (id) {
     return guardResult(function () {
       Auth.guard('document.delete');
