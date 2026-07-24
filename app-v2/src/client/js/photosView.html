@@ -17,7 +17,7 @@ const Photos = (function(){
             '<input type="date" id="pDate" style="width:100%;margin-top:4px" value="'+today()+'"></label>' +
           '<label style="font-size:.78rem;color:var(--muted)">ໄຟລ໌ຮູບ / Photo file' +
             '<input type="file" id="pFile" accept="image/*" style="width:100%;margin-top:4px;color:var(--muted);font-size:.8rem"></label>' +
-          '<button class="qa" id="pUp" style="width:auto;flex-direction:row;padding:10px 16px">⬆️ Upload / ອັບ</button>' +
+          '<button class="btn-glow" id="pUp">⬆️ Upload / ອັບ</button>' +
         '</div>' +
         '<div id="pMsg" style="font-size:.8rem;margin-top:8px"></div>' +
       '</div>' +
@@ -72,6 +72,7 @@ const Photos = (function(){
           btn('🔗','ແຊ / Share',"DAMS.fileShare('"+fid+"')") +
           btn('🖨','ພິມ / Print',"DAMS.filePrint('"+fid+"')") +
           btn('⬇','ດາວໂຫຼດ / Download',"DAMS.fileDownload('"+fid+"')") +
+          '<button class="btn-del" style="flex:1" title="ລົບ / Delete" onclick="__photoDel(\''+esc(p.photo_id)+'\')">🗑</button>' +
           '</div>';
         return '<div style="background:var(--bg2);border:1px solid var(--line);border-radius:12px;overflow:hidden">' +
           thumb +
@@ -87,6 +88,15 @@ const Photos = (function(){
     return '<button title="'+title+'" onclick="'+onclick+'" style="flex:1;padding:6px 0;border:1px solid var(--line);'+
       'background:var(--bg);border-radius:8px;cursor:pointer;font-size:.9rem;color:var(--text)">'+icon+'</button>';
   }
+
+  function del(id){
+    if(!confirm('ລົບຮູບນີ້? / Delete this photo? (ກູ້ຄືນໄດ້)')) return;
+    DAMS.call('apiDeletePhoto', id).then(function(r){
+      if(!r || !r.ok){ DAMS.toast('⚠️ '+((r&&r.error&&r.error.code)||'Error'), true); return; }
+      DAMS.toast('ລົບແລ້ວ / deleted'); refresh();
+    }).catch(function(e){ DAMS.toast('⚠️ '+e, true); });
+  }
+  window.__photoDel = del;
 
   function upload(){
     var inp = document.getElementById('pFile');

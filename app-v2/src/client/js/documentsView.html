@@ -21,7 +21,7 @@ const Documents = (function(){
             '<input id="dName" placeholder="ຊື່ (ຄົ້ນຫາໄດ້)" style="width:100%;margin-top:4px"></label>' +
           '<label style="font-size:.78rem;color:var(--muted)">ໄຟລ໌ / File' +
             '<input type="file" id="dFile" style="width:100%;margin-top:4px;color:var(--muted);font-size:.8rem"></label>' +
-          '<button class="qa" id="dUp" style="width:auto;flex-direction:row;padding:10px 16px">⬆️ Upload / ອັບ</button>' +
+          '<button class="btn-glow" id="dUp">⬆️ Upload / ອັບ</button>' +
         '</div>' +
         '<div id="dMsg" style="font-size:.8rem;margin-top:8px"></div>' +
       '</div>' +
@@ -76,6 +76,7 @@ const Documents = (function(){
           abtn('🔗','ແຊ / Share',"DAMS.fileShare('"+fid+"')")+
           abtn('🖨','ພິມ / Print',"DAMS.filePrint('"+fid+"')")+
           abtn('⬇','ດາວໂຫຼດ / Download',"DAMS.fileDownload('"+fid+"')")+
+          '<button class="btn-del" style="padding:5px 9px" title="ລົບ / Delete" onclick="__docDel(\''+esc(d.document_id)+'\')">🗑</button>'+
           '</div>';
         return '<tr style="border-top:1px solid var(--line)">'+
           '<td style="padding:8px">'+esc(d.category||'—')+'</td>'+
@@ -88,6 +89,15 @@ const Documents = (function(){
     return '<button title="'+title+'" onclick="'+onclick+'" style="padding:5px 9px;border:1px solid var(--line);'+
       'background:var(--bg);border-radius:8px;cursor:pointer;font-size:.9rem;color:var(--text)">'+icon+'</button>';
   }
+
+  function del(id){
+    if(!confirm('ລົບເອກະສານນີ້? / Delete this document? (ກູ້ຄືນໄດ້)')) return;
+    DAMS.call('apiDeleteDocument', id).then(function(r){
+      if(!r || !r.ok){ DAMS.toast('⚠️ '+((r&&r.error&&r.error.code)||'Error'), true); return; }
+      DAMS.toast('ລົບແລ້ວ / deleted'); refresh();
+    }).catch(function(e){ DAMS.toast('⚠️ '+e, true); });
+  }
+  window.__docDel = del;
 
   function upload(){
     var inp=document.getElementById('dFile'); var file=inp.files&&inp.files[0]; var msg=document.getElementById('dMsg');
