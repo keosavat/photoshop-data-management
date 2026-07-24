@@ -35,8 +35,10 @@
 ## 5. Soft delete
 `softDelete(file)` → ຍ້າຍໄປ `_RecycleBin/`. Sheet record `status='deleted'`. Restore = `status='active'`.
 
-## 6. ຄວນເສີມ (future)
-- Thumbnails generation + cache
+## 6. Thumbnails (🟢 implemented)
+`PhotoService.list/get/upload` ຕິດ `thumb_url` = `https://drive.google.com/thumbnail?id={drive_file_id}&sz=w400`. Gallery (`photosView.html`) render `<img>` grid (aspect 1:1, object-fit cover, lazy-load) ພ້ອມ fallback 🖼️ ຖ້າໂຫຼດບໍ່ໄດ້. ໃຊ້ thumbnail ຂອງ Google Drive ໂດຍກົງ — ບໍ່ຕ້ອງເກັບໄຟລ໌ເສີມ (staff ຕ້ອງມີສິດ view ໂຟເດີ).
+
+## 7. ຄວນເສີມ (future)
 - Per-customer folder tree
 - Quota/retry/rate-limit wrappers (see `core/` utils)
 
