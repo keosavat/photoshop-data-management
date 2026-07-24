@@ -72,6 +72,8 @@ body{font-family:var(--font);color:var(--text);min-height:100vh;display:flex;
 .btn-glow:active{transform:translateY(0)}
 .btn-del{padding:6px 0;border:1px solid var(--line);background:var(--bg);border-radius:8px;cursor:pointer;
   font-size:.9rem;color:#ff8a8a;transition:.15s}.btn-del:hover{border-color:#ff6b6b;background:rgba(255,107,107,.12)}
+@keyframes damsFade{from{opacity:0}to{opacity:1}}
+@keyframes damsPop{from{opacity:0;transform:translateY(8px) scale(.96)}to{opacity:1;transform:none}}
 .chip{font-size:.68rem;padding:3px 9px;border-radius:20px;background:var(--bg2);border:1px solid var(--line);color:var(--muted)}
 .skeleton{opacity:.5}.foot{color:var(--muted);font-size:.75rem;text-align:center;padding:8px 0 20px}
 </style>
