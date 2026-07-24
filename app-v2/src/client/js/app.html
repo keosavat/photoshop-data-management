@@ -121,6 +121,7 @@ function showView(k){
   if(k === 'search'){ Search.load(view); return; }
   if(k === 'reports'){ Reports.load(view); return; }
   if(k === 'settings'){ Settings.load(view); return; }
+  if(k === 'design'){ Design.load(view); return; }
   document.getElementById('hSub').textContent = 'ໂມດູນນີ້ຢູ່ໃນແຜນ phase ຕໍ່ໄປ / coming soon.';
   view.innerHTML = '<div class="glass card">🚧 ' + k +
     ' — UI ກຳລັງພັດທະນາ. Backend service ພ້ອມ + tested ແລ້ວ.</div>';
