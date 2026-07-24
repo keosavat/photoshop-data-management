@@ -65,6 +65,7 @@ function makeGas() {
   // ---------- Drive ----------
   let folderSeq = 1, fileSeq = 1;
   const folderRegistry = {};
+  const fileRegistry = {};
   function FolderMock(name) {
     const f = { name, id: 'fld' + (folderSeq++), folders: [], files: [] };
     folderRegistry[f.id] = f;
@@ -78,11 +79,12 @@ function makeGas() {
     f.createFolder = (n) => { const c = FolderMock(n); f.folders.push(c); return c; };
     f.createFile = (blob) => {
       const file = {
-        id: 'file' + (fileSeq++), name: (blob && blob.name) || 'file', blob,
+        id: 'file' + (fileSeq++), name: (blob && blob.name) || 'file', blob, sharing: null,
         getName() { return this.name; }, setName(n) { this.name = n; return this; },
-        getId() { return this.id; }, moveTo(dst) { dst.files.push(this); return this; }
+        getId() { return this.id; }, moveTo(dst) { dst.files.push(this); return this; },
+        setSharing(access, permission) { this.sharing = { access, permission }; return this; }
       };
-      f.files.push(file); file.parent = f; return file;
+      f.files.push(file); file.parent = f; fileRegistry[file.id] = file; return file;
     };
     f.addFile = (file) => { f.files.push(file); return f; };
     return f;
@@ -93,7 +95,13 @@ function makeGas() {
     getFolderById: (id) => {
       if (!folderRegistry[id]) throw new Error('No folder with id: ' + id);
       return folderRegistry[id];
-    }
+    },
+    getFileById: (id) => {
+      if (!fileRegistry[id]) throw new Error('No file with id: ' + id);
+      return fileRegistry[id];
+    },
+    Access: { ANYONE_WITH_LINK: 'ANYONE_WITH_LINK', PRIVATE: 'PRIVATE' },
+    Permission: { VIEW: 'VIEW', EDIT: 'EDIT', NONE: 'NONE' }
   };
 
   // ---------- Cache ----------
