@@ -2,8 +2,8 @@
  * PhotoService.gs — Photo module (see docs-v2/06_module_specs/photos.md).
  * Upload → SHA-256 dedup → Drive store → Sheet record. RBAC guarded.
  */
-const PHOTO_HEADERS = ['photo_id', 'album_id', 'customer_id', 'name', 'drive_file_id',
-  'sha256', 'size', 'favorite', 'status', 'created_at'];
+const PHOTO_HEADERS = ['photo_id', 'album_id', 'customer_id', 'customer_name', 'photo_date',
+  'name', 'drive_file_id', 'sha256', 'size', 'favorite', 'status', 'created_at'];
 
 function sha256Hex_(blob) {
   const bytes = blob.getBytes();
@@ -70,6 +70,8 @@ const PhotoService = {
         photo_id: nextId('Photos', repo.ids(CONFIG.SHEETS.Photos, 'photo_id')),
         album_id: input.album_id || '',
         customer_id: input.customer_id || '',
+        customer_name: input.customer_name || '',
+        photo_date: input.photo_date || nowIso_().slice(0, 10),
         name: input.name,
         drive_file_id: file.getId(),
         sha256: hash,
