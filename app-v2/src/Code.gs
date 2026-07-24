@@ -112,6 +112,8 @@ function apiUploadDocument(payload) {
   });
 }
 function apiDocHistory(id) { return DocumentService.history(id); }
+function apiDeleteDocument(id) { return DocumentService.softDelete(id); }
+function apiDeletePhoto(id) { return PhotoService.softDelete(id); }
 
 // ---- Printing ----
 function apiPrintQueue() { return PrintingService.queue(); }
