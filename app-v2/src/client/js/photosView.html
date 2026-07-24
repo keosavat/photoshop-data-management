@@ -1,60 +1,107 @@
 <script>
-/* photosView.html — Photos module UI: real upload (base64) + gallery. */
+/* photosView.html — Photos: upload (customer + date + file) + gallery with actions. */
 const Photos = (function(){
-  function esc(s){ return String(s==null?'':s).replace(/[&<>]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;'}[c];}); }
+  var customers = [];
+  function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
+  function today(){ return new Date().toISOString().slice(0,10); }
 
   function load(el){
     document.getElementById('hSub').textContent = 'ຄັງຮູບພາບ / Photo library';
     el.innerHTML =
       '<div class="glass card">' +
-        '<div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px">' +
+        '<h3 style="margin:0 0 12px">ອັບໂຫຼດຮູບ / Upload photo</h3>' +
+        '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;align-items:end">' +
+          '<label style="font-size:.78rem;color:var(--muted)">ລູກຄ້າ / Customer' +
+            '<select id="pCus" style="width:100%;margin-top:4px"><option value="">— ບໍ່ລະບຸ / none —</option></select></label>' +
+          '<label style="font-size:.78rem;color:var(--muted)">ວັນທີ / Date' +
+            '<input type="date" id="pDate" style="width:100%;margin-top:4px" value="'+today()+'"></label>' +
+          '<label style="font-size:.78rem;color:var(--muted)">ໄຟລ໌ຮູບ / Photo file' +
+            '<input type="file" id="pFile" accept="image/*" style="width:100%;margin-top:4px;color:var(--muted);font-size:.8rem"></label>' +
+          '<button class="qa" id="pUp" style="width:auto;flex-direction:row;padding:10px 16px">⬆️ Upload / ອັບ</button>' +
+        '</div>' +
+        '<div id="pMsg" style="font-size:.8rem;margin-top:8px"></div>' +
+      '</div>' +
+      '<div class="glass card" style="margin-top:14px">' +
+        '<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px">' +
           '<h3 style="margin:0">ຮູບພາບ / Photos</h3>' +
-          '<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">' +
-            '<input type="file" id="pFile" accept="image/*" style="max-width:230px;color:var(--muted);font-size:.82rem">' +
-            '<button class="qa" id="pUp" style="width:auto;flex-direction:row;padding:9px 15px">⬆️ Upload / ອັບ</button>' +
-            '<span id="pMsg" style="font-size:.8rem"></span>' +
-          '</div>' +
+          '<input id="pSearch" placeholder="🔍 ຄົ້ນຫາ ຊື່/ລູກຄ້າ… / search" style="max-width:260px;font-size:.82rem">' +
         '</div>' +
         '<div id="pList" style="color:var(--muted)">ກຳລັງໂຫຼດ…</div>' +
       '</div>';
     document.getElementById('pUp').onclick = upload;
+    document.getElementById('pSearch').oninput = render;
+    DAMS.call('apiCustomers').then(function(r){
+      customers = (r && r.ok) ? r.data : [];
+      var sel = document.getElementById('pCus');
+      customers.forEach(function(c){
+        var o = document.createElement('option'); o.value = c.customer_id;
+        o.textContent = c.customer_id + ' · ' + (c.name||'');
+        sel.appendChild(o);
+      });
+    });
     refresh();
   }
 
+  var rows = [];
   function refresh(){
     DAMS.call('apiPhotos').then(function(r){
-      const list = document.getElementById('pList');
-      if(!r || !r.ok){ list.innerHTML = '<div style="color:#ff6b6b">⚠️ '+((r&&r.error&&r.error.code)||'Error')+'</div>'; return; }
-      const rows = (r.data || []).filter(function(p){ return p.status !== 'deleted'; });
-      if(!rows.length){ list.innerHTML = '<div style="padding:14px">ຍັງບໍ່ມີຮູບ / No photos yet — ເລືອກໄຟລ໌ແລ້ວກົດ Upload.</div>'; return; }
-      var ph = "this.style.display='none';this.nextElementSibling.style.display='flex'";
-      list.innerHTML = '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px">' +
-        rows.map(function(p){
-          var thumb = p.thumb_url
-            ? '<img loading="lazy" src="'+esc(p.thumb_url)+'" alt="'+esc(p.name)+'" onerror="'+ph+'" ' +
-                'style="width:100%;aspect-ratio:1/1;object-fit:cover;display:block;background:var(--bg)">' +
-              '<div style="display:none;width:100%;aspect-ratio:1/1;align-items:center;justify-content:center;font-size:34px;background:var(--bg)">🖼️</div>'
-            : '<div style="display:flex;width:100%;aspect-ratio:1/1;align-items:center;justify-content:center;font-size:34px;background:var(--bg)">🖼️</div>';
-          return '<div style="background:var(--bg2);border:1px solid var(--line);border-radius:12px;overflow:hidden">' +
-            thumb +
-            '<div style="padding:9px 11px">' +
-              '<div style="font-size:.85rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(p.name)+'</div>' +
-              '<div style="font-size:.72rem;color:var(--muted)">'+esc(p.album_id||'—')+' · '+esc(p.status)+'</div>' +
-            '</div></div>'; }).join('') +
-        '</div>';
+      if(!r || !r.ok){ document.getElementById('pList').innerHTML = '<div style="color:#ff6b6b">⚠️ '+((r&&r.error&&r.error.code)||'Error')+'</div>'; return; }
+      rows = (r.data || []).filter(function(p){ return p.status !== 'deleted'; });
+      render();
     });
   }
 
+  function render(){
+    var q = (document.getElementById('pSearch').value||'').toLowerCase();
+    var list = document.getElementById('pList');
+    var items = rows.filter(function(p){
+      if(!q) return true;
+      return (String(p.name||'')+' '+String(p.customer_name||'')+' '+String(p.customer_id||'')).toLowerCase().indexOf(q) !== -1;
+    });
+    if(!items.length){ list.innerHTML = '<div style="padding:14px">ບໍ່ພົບຮູບ / No photos.</div>'; return; }
+    var ph = "this.style.display='none';this.nextElementSibling.style.display='flex'";
+    list.innerHTML = '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px">' +
+      items.map(function(p){
+        var thumb = p.thumb_url
+          ? '<img loading="lazy" src="'+esc(p.thumb_url)+'" alt="'+esc(p.name)+'" onerror="'+ph+'" style="width:100%;aspect-ratio:1/1;object-fit:cover;display:block;background:var(--bg)">'+
+            '<div style="display:none;width:100%;aspect-ratio:1/1;align-items:center;justify-content:center;font-size:34px;background:var(--bg)">🖼️</div>'
+          : '<div style="display:flex;width:100%;aspect-ratio:1/1;align-items:center;justify-content:center;font-size:34px;background:var(--bg)">🖼️</div>';
+        var fid = esc(p.drive_file_id||'');
+        var actions = '<div style="display:flex;gap:4px;margin-top:8px">' +
+          btn('👁','ເບິ່ງ / View',"DAMS.fileView('"+fid+"')") +
+          btn('🔗','ແຊ / Share',"DAMS.fileShare('"+fid+"')") +
+          btn('🖨','ພິມ / Print',"DAMS.filePrint('"+fid+"')") +
+          btn('⬇','ດາວໂຫຼດ / Download',"DAMS.fileDownload('"+fid+"')") +
+          '</div>';
+        return '<div style="background:var(--bg2);border:1px solid var(--line);border-radius:12px;overflow:hidden">' +
+          thumb +
+          '<div style="padding:9px 11px">' +
+            '<div style="font-size:.85rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(p.name)+'</div>' +
+            '<div style="font-size:.72rem;color:var(--muted)">'+esc(p.customer_name||p.customer_id||'—')+' · '+esc(p.photo_date||'')+'</div>' +
+            actions +
+          '</div></div>'; }).join('') +
+      '</div>';
+  }
+
+  function btn(icon, title, onclick){
+    return '<button title="'+title+'" onclick="'+onclick+'" style="flex:1;padding:6px 0;border:1px solid var(--line);'+
+      'background:var(--bg);border-radius:8px;cursor:pointer;font-size:.9rem;color:var(--text)">'+icon+'</button>';
+  }
+
   function upload(){
-    const inp = document.getElementById('pFile');
-    const file = inp.files && inp.files[0];
-    const msg = document.getElementById('pMsg');
+    var inp = document.getElementById('pFile');
+    var file = inp.files && inp.files[0];
+    var msg = document.getElementById('pMsg');
     if(!file){ msg.style.color='#ff6b6b'; msg.textContent='ເລືອກໄຟລ໌ກ່ອນ / pick a file'; return; }
+    var cusId = document.getElementById('pCus').value;
+    var cusName = cusId ? (customers.filter(function(c){return c.customer_id===cusId;})[0]||{}).name || '' : '';
+    var pdate = document.getElementById('pDate').value || today();
     msg.style.color='var(--muted)'; msg.textContent='ກຳລັງອັບ… / uploading…';
-    const reader = new FileReader();
+    var reader = new FileReader();
     reader.onload = function(){
-      const base64 = String(reader.result).split(',')[1];
-      DAMS.call('apiUploadPhoto', { name:file.name, mimeType:file.type, dataBase64:base64 }).then(function(r){
+      var base64 = String(reader.result).split(',')[1];
+      DAMS.call('apiUploadPhoto', { name:file.name, mimeType:file.type, dataBase64:base64,
+        customer_id:cusId, customer_name:cusName, photo_date:pdate }).then(function(r){
         if(!r || !r.ok){ msg.style.color='#ff6b6b'; msg.textContent='⚠️ '+((r&&r.error&&r.error.code)||'Error'); return; }
         msg.style.color='var(--accent2)';
         msg.textContent = (r.meta && r.meta.deduped) ? '↺ ຊ້ຳ (deduped)' : '✅ '+r.data.photo_id;

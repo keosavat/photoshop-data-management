@@ -5,6 +5,65 @@ const DAMS = {
     return new Promise((resolve, reject)=>{
       google.script.run.withSuccessHandler(resolve).withFailureHandler(reject)[fn](...args);
     });
+  },
+  /* Open a URL in a new tab (works inside the Apps Script sandbox iframe). */
+  open(url){
+    var a = document.createElement('a');
+    a.href = url; a.target = '_blank'; a.rel = 'noopener';
+    document.body.appendChild(a); a.click(); a.remove();
+  },
+  toast(msg, err){
+    var t = document.createElement('div');
+    t.textContent = msg;
+    t.style.cssText = 'position:fixed;left:50%;bottom:26px;transform:translateX(-50%);z-index:9999;'+
+      'padding:11px 18px;border-radius:12px;font-size:.85rem;color:#fff;box-shadow:var(--shadow);'+
+      'background:'+(err?'#c0392b':'#2d7d46');
+    document.body.appendChild(t);
+    setTimeout(function(){ t.style.transition='opacity .4s'; t.style.opacity='0'; setTimeout(function(){t.remove();},400); }, 2600);
+  },
+  /* Drive file actions — id = drive_file_id. */
+  fileView(id){ this.open('https://drive.google.com/file/d/'+id+'/view'); },
+  fileDownload(id){ this.open('https://drive.google.com/uc?export=download&id='+id); },
+  filePrint(id){ this.open('https://drive.google.com/file/d/'+id+'/view'); }, // preview → print
+  /* Make link-shareable server-side, then Web-Share or show a share bar with platform links. */
+  fileShare(id, title, anchorEl){
+    var self = this;
+    this.toast('ກຳລັງສ້າງລິ້ງແຊ… / preparing link…');
+    this.call('apiShareLink', id).then(function(r){
+      if(!r || !r.ok){ self.toast('⚠️ '+((r&&r.error&&r.error.code)||'Error'), true); return; }
+      var url = r.data.share;
+      if(navigator.share){
+        navigator.share({ title: title||'PhotoShop DAMS', url: url }).catch(function(){ self._shareBar(url, title, anchorEl); });
+      } else { self._shareBar(url, title, anchorEl); }
+    }).catch(function(e){ self.toast('⚠️ '+e, true); });
+  },
+  _shareBar(url, title, anchorEl){
+    var enc = encodeURIComponent(url), t = encodeURIComponent(title||'');
+    var links = [
+      ['Facebook','https://www.facebook.com/sharer/sharer.php?u='+enc],
+      ['WhatsApp','https://wa.me/?text='+t+'%20'+enc],
+      ['Line','https://social-plugins.line.me/lineit/share?url='+enc],
+      ['Telegram','https://t.me/share/url?url='+enc+'&text='+t],
+      ['Email','mailto:?subject='+t+'&body='+enc]
+    ];
+    var bar = document.createElement('div');
+    bar.className = 'glass';
+    bar.style.cssText = 'position:fixed;left:50%;bottom:70px;transform:translateX(-50%);z-index:9999;'+
+      'padding:14px 16px;border-radius:14px;max-width:92vw;box-shadow:var(--shadow)';
+    bar.innerHTML =
+      '<div style="font-size:.8rem;color:var(--muted);margin-bottom:8px">ແຊລິ້ງ / Share link</div>'+
+      '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">'+
+        '<input readonly value="'+url+'" style="min-width:230px;font-size:.78rem" onclick="this.select()">'+
+        '<button class="qa" style="width:auto;flex-direction:row;padding:7px 12px" id="_shCopy">📋 Copy</button>'+
+        links.map(function(l){ return '<a class="qa" style="width:auto;flex-direction:row;padding:7px 12px;text-decoration:none" target="_blank" rel="noopener" href="'+l[1]+'">'+l[0]+'</a>'; }).join('')+
+        '<button class="qa" style="width:auto;flex-direction:row;padding:7px 12px" id="_shClose">✕</button>'+
+      '</div>';
+    document.body.appendChild(bar);
+    bar.querySelector('#_shClose').onclick = function(){ bar.remove(); };
+    bar.querySelector('#_shCopy').onclick = function(){
+      var i = bar.querySelector('input'); i.select();
+      try{ document.execCommand('copy'); DAMS.toast('ຄັດລອກແລ້ວ / copied'); }catch(e){}
+    };
   }
 };
 

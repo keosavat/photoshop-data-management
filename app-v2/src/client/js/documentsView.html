@@ -1,49 +1,107 @@
 <script>
-/* documentsView.html — Documents module: upload (versioned) + list. */
+/* documentsView.html — Documents: upload (category + name + versioned) + searchable list + actions. */
 const Documents = (function(){
-  function esc(s){ return String(s==null?'':s).replace(/[&<>]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;'}[c];}); }
+  function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
   var TYPES = ['PDF','DOCX','XLSX','PPTX','PSD','AI','ZIP','PNG','JPEG','RAW','SVG'];
   function extType(name){ var m=String(name).toUpperCase().match(/\.([A-Z0-9]+)$/); var e=m?m[1]:''; if(e==='JPG')e='JPEG'; return TYPES.indexOf(e)>=0?e:'PDF'; }
+  function stripExt(name){ return String(name).replace(/\.[^.]+$/,''); }
+
+  var rows = [];
 
   function load(el){
     document.getElementById('hSub').textContent = 'ຈັດການເອກະສານ / Documents';
     el.innerHTML =
       '<div class="glass card">' +
-        '<div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px">' +
+        '<h3 style="margin:0 0 12px">ອັບໂຫຼດເອກະສານ / Upload document</h3>' +
+        '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;align-items:end">' +
+          '<label style="font-size:.78rem;color:var(--muted)">ໝວດ / Category' +
+            '<input id="dCat" list="dCatList" placeholder="ເຊັ່ນ: ໃບຢັ້ງຢືນ, ສັນຍາ…" style="width:100%;margin-top:4px">' +
+            '<datalist id="dCatList"></datalist></label>' +
+          '<label style="font-size:.78rem;color:var(--muted)">ຊື່ເອກະສານ / Name' +
+            '<input id="dName" placeholder="ຊື່ (ຄົ້ນຫາໄດ້)" style="width:100%;margin-top:4px"></label>' +
+          '<label style="font-size:.78rem;color:var(--muted)">ໄຟລ໌ / File' +
+            '<input type="file" id="dFile" style="width:100%;margin-top:4px;color:var(--muted);font-size:.8rem"></label>' +
+          '<button class="qa" id="dUp" style="width:auto;flex-direction:row;padding:10px 16px">⬆️ Upload / ອັບ</button>' +
+        '</div>' +
+        '<div id="dMsg" style="font-size:.8rem;margin-top:8px"></div>' +
+      '</div>' +
+      '<div class="glass card" style="margin-top:14px">' +
+        '<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px">' +
           '<h3 style="margin:0">ເອກະສານ / Documents</h3>' +
-          '<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">' +
-            '<input type="file" id="dFile" style="max-width:230px;color:var(--muted);font-size:.82rem">' +
-            '<button class="qa" id="dUp" style="width:auto;flex-direction:row;padding:9px 15px">⬆️ Upload / ອັບ</button>' +
-            '<span id="dMsg" style="font-size:.8rem"></span>' +
+          '<div style="display:flex;gap:8px;flex-wrap:wrap">' +
+            '<select id="dFilterCat" style="font-size:.82rem"><option value="">ທຸກໝວດ / All categories</option></select>' +
+            '<input id="dSearch" placeholder="🔍 ຄົ້ນຫາຊື່… / search" style="max-width:230px;font-size:.82rem">' +
           '</div>' +
         '</div><div id="dList" style="color:var(--muted)">ກຳລັງໂຫຼດ…</div></div>';
     document.getElementById('dUp').onclick = upload;
+    document.getElementById('dFile').onchange = function(){
+      var n = document.getElementById('dName'); if(!n.value && this.files[0]) n.value = stripExt(this.files[0].name);
+    };
+    document.getElementById('dSearch').oninput = render;
+    document.getElementById('dFilterCat').onchange = render;
     refresh();
   }
+
   function refresh(){
     DAMS.call('apiDocuments').then(function(r){
-      var list=document.getElementById('dList');
-      if(!r||!r.ok){ list.innerHTML='<div style="color:#ff6b6b">⚠️ '+((r&&r.error&&r.error.code)||'Error')+'</div>'; return; }
-      var rows=(r.data||[]).filter(function(d){return d.status!=='deleted';});
-      if(!rows.length){ list.innerHTML='<div style="padding:14px">ຍັງບໍ່ມີເອກະສານ / No documents yet</div>'; return; }
-      list.innerHTML='<table style="width:100%;border-collapse:collapse;font-size:.86rem"><thead><tr style="text-align:left;color:var(--muted)">'+
-        '<th style="padding:8px">ID</th><th>ຊື່</th><th>ປະເພດ</th><th>Ver</th><th>ວັນ</th></tr></thead><tbody>'+
-        rows.map(function(d){ return '<tr style="border-top:1px solid var(--line)"><td style="padding:8px">'+esc(d.document_id)+'</td>'+
-          '<td>'+esc(d.name)+'</td><td><span class="chip">'+esc(d.type)+'</span></td><td>v'+esc(d.version)+'</td>'+
-          '<td style="color:var(--muted)">'+esc(String(d.created_at).slice(0,10))+'</td></tr>'; }).join('')+'</tbody></table>';
+      if(!r||!r.ok){ document.getElementById('dList').innerHTML='<div style="color:#ff6b6b">⚠️ '+((r&&r.error&&r.error.code)||'Error')+'</div>'; return; }
+      rows = (r.data||[]).filter(function(d){return d.status!=='deleted';});
+      var cats = {}; rows.forEach(function(d){ if(d.category) cats[d.category]=1; });
+      var dl = document.getElementById('dCatList'); var fc = document.getElementById('dFilterCat');
+      dl.innerHTML=''; fc.innerHTML='<option value="">ທຸກໝວດ / All categories</option>';
+      Object.keys(cats).sort().forEach(function(c){
+        var o=document.createElement('option'); o.value=c; dl.appendChild(o);
+        var o2=document.createElement('option'); o2.value=c; o2.textContent=c; fc.appendChild(o2);
+      });
+      render();
     });
   }
+
+  function render(){
+    var q=(document.getElementById('dSearch').value||'').toLowerCase();
+    var cat=document.getElementById('dFilterCat').value;
+    var list=document.getElementById('dList');
+    var items=rows.filter(function(d){
+      if(cat && d.category!==cat) return false;
+      if(q && (String(d.name||'')+' '+String(d.category||'')).toLowerCase().indexOf(q)===-1) return false;
+      return true;
+    });
+    if(!items.length){ list.innerHTML='<div style="padding:14px">ບໍ່ພົບເອກະສານ / No documents.</div>'; return; }
+    list.innerHTML='<table style="width:100%;border-collapse:collapse;font-size:.86rem"><thead><tr style="text-align:left;color:var(--muted)">'+
+      '<th style="padding:8px">ໝວດ / Category</th><th>ຊື່ / Name</th><th>ປະເພດ</th><th>Ver</th><th>ວັນ</th><th style="text-align:right">ຄຳສັ່ງ / Actions</th></tr></thead><tbody>'+
+      items.map(function(d){
+        var fid=esc(d.drive_file_id||'');
+        var actions = '<div style="display:flex;gap:4px;justify-content:flex-end">'+
+          abtn('👁','ເບິ່ງ / View',"DAMS.fileView('"+fid+"')")+
+          abtn('🔗','ແຊ / Share',"DAMS.fileShare('"+fid+"')")+
+          abtn('🖨','ພິມ / Print',"DAMS.filePrint('"+fid+"')")+
+          abtn('⬇','ດາວໂຫຼດ / Download',"DAMS.fileDownload('"+fid+"')")+
+          '</div>';
+        return '<tr style="border-top:1px solid var(--line)">'+
+          '<td style="padding:8px">'+esc(d.category||'—')+'</td>'+
+          '<td>'+esc(d.name)+'</td><td><span class="chip">'+esc(d.type)+'</span></td><td>v'+esc(d.version)+'</td>'+
+          '<td style="color:var(--muted)">'+esc(String(d.created_at).slice(0,10))+'</td><td>'+actions+'</td></tr>'; }).join('')+
+      '</tbody></table>';
+  }
+
+  function abtn(icon,title,onclick){
+    return '<button title="'+title+'" onclick="'+onclick+'" style="padding:5px 9px;border:1px solid var(--line);'+
+      'background:var(--bg);border-radius:8px;cursor:pointer;font-size:.9rem;color:var(--text)">'+icon+'</button>';
+  }
+
   function upload(){
     var inp=document.getElementById('dFile'); var file=inp.files&&inp.files[0]; var msg=document.getElementById('dMsg');
-    if(!file){ msg.style.color='#ff6b6b'; msg.textContent='ເລືອກໄຟລ໌ກ່ອນ'; return; }
-    msg.style.color='var(--muted)'; msg.textContent='ກຳລັງອັບ…';
+    if(!file){ msg.style.color='#ff6b6b'; msg.textContent='ເລືອກໄຟລ໌ກ່ອນ / pick a file'; return; }
+    var name=(document.getElementById('dName').value||'').trim() || stripExt(file.name);
+    var category=(document.getElementById('dCat').value||'').trim();
+    msg.style.color='var(--muted)'; msg.textContent='ກຳລັງອັບ… / uploading…';
     var reader=new FileReader();
     reader.onload=function(){
       var base64=String(reader.result).split(',')[1];
-      DAMS.call('apiUploadDocument',{ name:file.name, type:extType(file.name), mimeType:file.type, dataBase64:base64 }).then(function(r){
+      DAMS.call('apiUploadDocument',{ name:name, type:extType(file.name), category:category, mimeType:file.type, dataBase64:base64 }).then(function(r){
         if(!r||!r.ok){ msg.style.color='#ff6b6b'; msg.textContent='⚠️ '+((r&&r.error&&r.error.code)||'Error'); return; }
         msg.style.color='var(--accent2)'; msg.textContent='✅ '+r.data.document_id+' v'+r.data.version;
-        inp.value=''; refresh();
+        inp.value=''; document.getElementById('dName').value=''; refresh();
       });
     };
     reader.readAsDataURL(file);
