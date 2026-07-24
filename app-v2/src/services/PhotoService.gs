@@ -14,6 +14,16 @@ function sha256Hex_(blob) {
   }).join('');
 }
 
+/** Google Drive thumbnail URL for a stored image (rendered directly in <img>). */
+function driveThumbUrl_(fileId) {
+  return fileId ? ('https://drive.google.com/thumbnail?id=' + fileId + '&sz=w400') : '';
+}
+/** Attach a thumb_url derived from drive_file_id to a photo record. */
+function withThumb_(p) {
+  if (p) p.thumb_url = driveThumbUrl_(p.drive_file_id);
+  return p;
+}
+
 const PhotoService = {
   _repo: function () {
     const r = new SheetRepository();
@@ -27,7 +37,7 @@ const PhotoService = {
       Auth.guard('photo.read');
       let rows = PhotoService._repo().findAll(CONFIG.SHEETS.Photos);
       if (albumId) rows = rows.filter(function (p) { return String(p.album_id) === String(albumId); });
-      return ok(rows);
+      return ok(rows.map(withThumb_));
     });
   },
 
@@ -36,7 +46,7 @@ const PhotoService = {
       Auth.guard('photo.read');
       const p = PhotoService._repo().findById(CONFIG.SHEETS.Photos, 'photo_id', id);
       if (!p) throw AppError(ERR.NOT_FOUND, 'photo ' + id);
-      return ok(p);
+      return ok(withThumb_(p));
     });
   },
 
@@ -52,7 +62,7 @@ const PhotoService = {
       const existing = repo.findAll(CONFIG.SHEETS.Photos).filter(function (p) {
         return p.sha256 === hash && p.status !== 'deleted';
       })[0];
-      if (existing) return ok(existing, { deduped: true });
+      if (existing) return ok(withThumb_(existing), { deduped: true });
 
       const album = input.album_id || '_unsorted';
       const file = PhotoService._drive().uploadTo([CONFIG.DRIVE.albums, album], input.blob, input.name);
@@ -69,7 +79,7 @@ const PhotoService = {
         created_at: nowIso_()
       };
       repo.insert(CONFIG.SHEETS.Photos, rec);
-      return ok(rec, { deduped: false });
+      return ok(withThumb_(rec), { deduped: false });
     });
   },
 
