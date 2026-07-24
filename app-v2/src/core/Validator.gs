@@ -18,11 +18,11 @@ function isEmail(s) {
   return typeof s === 'string' && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s);
 }
 
-/** Lao/intl phone: digits, spaces, +, -, min 6 digits. */
+/** Lao/intl phone: digits, spaces, +, -, min 3 digits (lenient for local numbers). */
 function isPhone(s) {
   if (typeof s !== 'string') return false;
   const digits = s.replace(/[^\d]/g, '');
-  return /^[\d +\-]+$/.test(s) && digits.length >= 6;
+  return /^[\d +\-()]+$/.test(s) && digits.length >= 3;
 }
 
 function assert_(cond, code, message) {
